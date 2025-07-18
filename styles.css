@@ -1,3 +1,119 @@
+/* Apple Design System */
+:root {
+    /* Primary Colors */
+    --primary-blue: #007AFF;
+    --primary-green: #34C759;
+    --primary-red: #FF3B30;
+    --primary-orange: #FF9500;
+    --primary-purple: #AF52DE;
+    
+    /* Grays */
+    --gray-100: #F2F2F7;
+    --gray-200: #E5E5EA;
+    --gray-300: #C6C6C8;
+    --gray-400: #AEAEB2;
+    --gray-500: #8E8E93;
+    --gray-600: #636366;
+    --gray-900: #1C1C1E;
+    
+    /* Semantic Colors */
+    --background: #FFFFFF;
+    --surface: #F2F2F7;
+    --surface-secondary: #FFFFFF;
+    --text-primary: #1C1C1E;
+    --text-secondary: #8E8E93;
+    --text-tertiary: #C6C6C8;
+    --divider: #E5E5EA;
+    
+    /* Apple Typography System */
+    --display: 600 34px/1.2 -apple-system, BlinkMacSystemFont, sans-serif;
+    --title-1: 600 28px/1.2 -apple-system, BlinkMacSystemFont, sans-serif;
+    --title-2: 600 22px/1.3 -apple-system, BlinkMacSystemFont, sans-serif;
+    --title-3: 600 20px/1.3 -apple-system, BlinkMacSystemFont, sans-serif;
+    --body: 400 17px/1.5 -apple-system, BlinkMacSystemFont, sans-serif;
+    --body-emphasis: 600 17px/1.5 -apple-system, BlinkMacSystemFont, sans-serif;
+    --caption-1: 400 12px/1.3 -apple-system, BlinkMacSystemFont, sans-serif;
+    --caption-2: 400 11px/1.3 -apple-system, BlinkMacSystemFont, sans-serif;
+    
+    /* Apple Spacing System */
+    --spacing-xs: 4px;
+    --spacing-s: 8px;
+    --spacing-m: 16px;
+    --spacing-l: 24px;
+    --spacing-xl: 32px;
+    --spacing-xxl: 48px;
+    
+    /* Category Colors (단색) */
+    --category-travel: #AF52DE;
+    --category-hobby: #FF9500;
+    --category-career: #007AFF;
+    --category-health: #34C759;
+    --category-relationship: #FF3B30;
+    --category-other: #8E8E93;
+}
+
+/* Apple Button System */
+.button {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font: var(--body-emphasis);
+    font-size: 15px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.button-primary {
+    background: var(--primary-blue);
+    color: white;
+}
+
+.button-primary:hover {
+    background: #0051D5;
+}
+
+.button-secondary {
+    background: var(--gray-100);
+    color: var(--primary-blue);
+}
+
+.button-secondary:hover {
+    background: var(--gray-200);
+}
+
+.button-tertiary {
+    background: transparent;
+    color: var(--primary-blue);
+    padding: 8px 16px;
+}
+
+.button-tertiary:hover {
+    background: var(--gray-100);
+}
+
+.button-destructive {
+    background: var(--primary-red);
+    color: white;
+}
+
+.button-destructive:hover {
+    background: #D70015;
+}
+
+.button-small {
+    padding: 6px 12px;
+    font-size: 13px;
+    border-radius: 6px;
+}
+
+.button-large {
+    padding: 12px 24px;
+    font-size: 17px;
+    border-radius: 10px;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -5,10 +121,11 @@
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    font: var(--body);
+    background: var(--surface);
+    color: var(--text-primary);
     min-height: 100vh;
-    padding: 15px;
+    padding: var(--spacing-m);
     line-height: 1.6;
     
     /* 성능 최적화 */
@@ -388,7 +505,7 @@ body {
     top: 25px;
     right: 25px;
     display: flex;
-    gap: 12px;
+    gap: var(--spacing-s);
     z-index: 3;
 }
 
@@ -476,23 +593,22 @@ body {
 
 .nav-tabs {
     display: flex;
-    background: #ffffff;
-    border-bottom: 1px solid #e9ecef;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    background: transparent;
+    border-bottom: 1px solid var(--gray-200);
+    padding: 0 var(--spacing-m);
 }
 
 .nav-tab {
     flex: 1;
-    padding: 18px 15px;
+    padding: var(--spacing-m) var(--spacing-l);
     background: none;
     border: none;
     cursor: pointer;
-    font-size: 1rem;
-    font-weight: 600;
-    color: #495057;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font: var(--body-emphasis);
+    color: var(--text-secondary);
+    transition: all 0.2s ease;
     position: relative;
-    letter-spacing: 0.3px;
+    border-bottom: 2px solid transparent;
     
     /* 터치 최적화 */
     -webkit-tap-highlight-color: transparent;
@@ -512,9 +628,8 @@ body {
 }
 
 .nav-tab.active {
-    background: #ffffff;
-    color: #4facfe;
-    border-bottom: none;
+    color: var(--primary-blue);
+    border-bottom-color: var(--primary-blue);
 }
 
 .nav-tab.active::after {
@@ -522,8 +637,7 @@ body {
 }
 
 .nav-tab:hover {
-    background: #f8f9fa;
-    color: #4facfe;
+    color: var(--primary-blue);
 }
 
 .nav-tab:hover::after {
@@ -582,17 +696,16 @@ body {
 }
 
 .btn {
-    padding: 14px 24px;
+    padding: 10px 20px;
     border: none;
-    border-radius: 12px;
-    font-size: 0.95rem;
-    font-weight: 600;
+    border-radius: 8px;
+    font: var(--body-emphasis);
+    font-size: 15px;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.2s ease;
     align-self: end;
-    letter-spacing: 0.3px;
     text-transform: none;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     
     /* 터치 최적화 */
     -webkit-tap-highlight-color: transparent;
@@ -601,35 +714,32 @@ body {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    background: var(--primary-blue);
     color: white;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(79, 172, 254, 0.35);
-    background: linear-gradient(135deg, #3d8bfe 0%, #00d9fe 100%);
+    background: #0051D5;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.25);
 }
 
 .btn-primary:active {
-    transform: translateY(-1px);
+    transform: translateY(0);
 }
 
 .btn-secondary {
-    background: #6c757d;
-    color: white;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    background: var(--gray-100);
+    color: var(--primary-blue);
 }
 
 .btn-secondary:hover {
-    background: #5a6268;
+    background: var(--gray-200);
     transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(108, 117, 125, 0.3);
 }
 
 .btn-success {
-    background: #28a745;
+    background: var(--primary-green);
     color: white;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
@@ -665,7 +775,7 @@ body {
 }
 
 .btn-danger {
-    background: #dc3545;
+    background: var(--primary-red);
     color: white;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
@@ -721,7 +831,7 @@ body {
 
 .filters {
     display: flex;
-    gap: 8px;
+    gap: var(--spacing-s);
     flex-wrap: wrap;
 }
 
@@ -801,12 +911,12 @@ body {
     z-index: 2;
 }
 
-.bucket-item.travel { border-left-color: #ff6b6b; }
-.bucket-item.hobby { border-left-color: #4ecdc4; }
-.bucket-item.career { border-left-color: #45b7d1; }
-.bucket-item.relationship { border-left-color: #96ceb4; }
-.bucket-item.health { border-left-color: #feca57; }
-.bucket-item.other { border-left-color: #a55eea; }
+.bucket-item.travel { border-left-color: var(--category-travel); }
+.bucket-item.hobby { border-left-color: var(--category-hobby); }
+.bucket-item.career { border-left-color: var(--category-career); }
+.bucket-item.relationship { border-left-color: var(--category-relationship); }
+.bucket-item.health { border-left-color: var(--category-health); }
+.bucket-item.other { border-left-color: var(--category-other); }
 
 .item-image-container {
     position: relative;
@@ -862,7 +972,7 @@ body {
     justify-content: center;
     opacity: 0;
     transition: all 0.3s;
-    backdrop-filter: blur(5px);
+    backdrop-filter: blur(20px);
     z-index: 3;
     
     /* 터치 최적화 */
@@ -925,12 +1035,12 @@ body {
     color: white;
 }
 
-.category-tag.travel { background: #ff6b6b; }
-.category-tag.hobby { background: #4ecdc4; }
-.category-tag.career { background: #45b7d1; }
-.category-tag.relationship { background: #96ceb4; }
-.category-tag.health { background: #feca57; }
-.category-tag.other { background: #a55eea; }
+.category-tag.travel { background: var(--category-travel); }
+.category-tag.hobby { background: var(--category-hobby); }
+.category-tag.career { background: var(--category-career); }
+.category-tag.relationship { background: var(--category-relationship); }
+.category-tag.health { background: var(--category-health); }
+.category-tag.other { background: var(--category-other); }
 
 .completion-note {
     background: #f8f9fa;
@@ -987,7 +1097,7 @@ body {
 
 .upload-buttons {
     display: flex;
-    gap: 8px;
+    gap: var(--spacing-s);
     margin-bottom: 10px;
 }
 
@@ -1240,9 +1350,9 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0,0,0,0.7);
+    background: rgba(0,0,0,0.4);
     z-index: 1000;
-    backdrop-filter: blur(5px);
+    backdrop-filter: blur(20px);
     
     /* 성능 최적화 */
     will-change: opacity;
@@ -1253,12 +1363,12 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background: white;
-    padding: 25px;
-    border-radius: 15px;
-    max-width: 400px;
+    background: var(--background);
+    padding: var(--spacing-l);
+    border-radius: 16px;
+    max-width: 480px;
     width: 90%;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
     
     /* 성능 최적화 */
     will-change: transform;
@@ -1360,7 +1470,7 @@ body {
 .settings-group {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: var(--spacing-s);
 }
 
 .settings-group label {
@@ -1393,7 +1503,7 @@ body {
 .slider-container {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: var(--spacing-s);
 }
 
 .slider-container input[type="range"] {
@@ -1451,7 +1561,7 @@ body {
 .checkbox-label {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: var(--spacing-s);
     cursor: pointer;
     font-weight: 500;
     color: #333;
@@ -1522,7 +1632,7 @@ body {
 .preview-info {
     display: flex;
     flex-wrap: wrap;
-    gap: 12px;
+    gap: var(--spacing-s);
 }
 
 .preview-item {
@@ -1639,17 +1749,17 @@ body {
     }
     
     .slider-container {
-        gap: 8px;
+        gap: var(--spacing-s);
     }
     
     .preview-info {
         flex-direction: column;
-        gap: 8px;
+        gap: var(--spacing-s);
     }
     
     .modal-buttons {
         flex-direction: column;
-        gap: 8px;
+        gap: var(--spacing-s);
     }
     
     .btn-modal {
@@ -2011,7 +2121,7 @@ body {
 /* 완료된 항목 스타일 개선 */
 .completed-controls {
     display: flex;
-    gap: 8px;
+    gap: var(--spacing-s);
     margin-top: 15px;
 }
 
@@ -2169,7 +2279,7 @@ body {
 
     .add-form {
         grid-template-columns: 1fr;
-        gap: 12px;
+        gap: var(--spacing-s);
     }
 
     .bucket-list, .gallery-grid, .profile-options {
@@ -2179,7 +2289,7 @@ body {
 
     .stats {
         grid-template-columns: repeat(3, 1fr);
-        gap: 12px;
+        gap: var(--spacing-s);
     }
 
     .stat-card {
@@ -2205,18 +2315,18 @@ body {
 
     .upload-buttons {
         flex-direction: column;
-        gap: 8px;
+        gap: var(--spacing-s);
     }
 
     .image-upload-section.has-image .upload-buttons {
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: var(--spacing-s);
     }
 
     .data-management {
         flex-direction: column;
-        gap: 8px;
+        gap: var(--spacing-s);
     }
 
     .nav-tab {
@@ -2280,7 +2390,7 @@ body {
 
     .completed-controls {
         flex-direction: column;
-        gap: 8px;
+        gap: var(--spacing-s);
     }
 
     .auto-logout-notice {
@@ -2334,7 +2444,7 @@ body {
     }
 
     .header-controls {
-        gap: 8px;
+        gap: var(--spacing-s);
     }
 
     .header-btn {
@@ -2705,7 +2815,7 @@ body {
 .emotion-journey {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--spacing-s);
     padding: 5px 12px;
     background: #f3e5f5;
     border-radius: 20px;
@@ -2744,7 +2854,7 @@ body {
 .category-distribution {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: var(--spacing-s);
 }
 
 .category-stat {
@@ -2912,7 +3022,7 @@ body {
 .prediction-timeline {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--spacing-s);
     padding: 10px;
     background: #f5f7fa;
     border-radius: 8px;
@@ -2995,7 +3105,7 @@ body {
 .emotion-indicator {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--spacing-s);
     padding: 5px 12px;
     background: #f5f5f5;
     border-radius: 20px;
@@ -3190,7 +3300,7 @@ body {
 .challenge-card .challenge-participants {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: var(--spacing-s);
     margin-bottom: 15px;
 }
 
@@ -3287,7 +3397,7 @@ body {
 
 .family-member-actions {
     display: flex;
-    gap: 8px;
+    gap: var(--spacing-s);
 }
 
 /* 응원 메시지 벽 */
@@ -3990,7 +4100,7 @@ body {
 .task-item {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: var(--spacing-s);
     padding: 12px;
     background: white;
     border: 1px solid #e0e0e0;
@@ -4143,7 +4253,7 @@ body {
 .goal-progress {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--spacing-s);
     margin-left: auto;
     margin-right: 10px;
 }
@@ -4239,7 +4349,7 @@ body {
 .milestone-progress {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--spacing-s);
     font-size: 0.875rem;
     color: #666;
 }
@@ -4269,7 +4379,7 @@ body {
     top: 15px;
     right: 15px;
     display: flex;
-    gap: 8px;
+    gap: var(--spacing-s);
 }
 
 .btn-milestone-action {
@@ -4414,7 +4524,7 @@ body {
 .task-edit-form {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--spacing-s);
     flex: 1;
 }
 
@@ -4499,7 +4609,7 @@ body {
     transition: all 0.3s ease;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: var(--spacing-m);
 }
 
 .goal-item:hover {
@@ -4512,7 +4622,7 @@ body {
 .goal-main {
     display: flex;
     align-items: flex-start;
-    gap: 16px;
+    gap: var(--spacing-m);
 }
 
 .goal-category {
@@ -4535,7 +4645,7 @@ body {
 /* 빠른 태스크 추가 */
 .quick-task-add {
     display: flex;
-    gap: 8px;
+    gap: var(--spacing-s);
     margin-top: 12px;
     padding-top: 12px;
     border-top: 1px solid #f0f0f0;
@@ -4573,7 +4683,7 @@ body {
 .task-preview {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: var(--spacing-s);
     margin-top: 8px;
 }
 
@@ -4615,7 +4725,7 @@ body {
 /* 액션 버튼 개선 */
 .goal-actions {
     display: flex;
-    gap: 8px;
+    gap: var(--spacing-s);
     margin-top: 12px;
 }
 
@@ -4671,7 +4781,7 @@ body {
 
 .recommendation-cards {
     display: flex;
-    gap: 8px;
+    gap: var(--spacing-s);
     overflow-x: auto;
     padding-bottom: 6px;
     scrollbar-width: thin;
@@ -4764,7 +4874,7 @@ body {
 /* 반응형 */
 @media (max-width: 768px) {
     .goal-item {
-        padding: 16px;
+        padding: var(--spacing-m);
     }
     
     .goal-text {
@@ -4788,18 +4898,19 @@ body {
 
 /* 개별 목표 카드 - 크고 중요하게 */
 .goal-card {
-    background: white;
-    border-radius: 16px;
-    padding: 24px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    transition: all 0.3s;
+    background: var(--background);
+    border: 1px solid var(--gray-200);
+    border-radius: 12px;
+    padding: var(--spacing-l);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    transition: all 0.2s ease;
     position: relative;
     overflow: hidden;
 }
 
 .goal-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 24px rgba(0,0,0,0.12);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transform: translateY(-2px);
 }
 
 .goal-card.completed {
@@ -4813,15 +4924,15 @@ body {
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    background: var(--category-career);
 }
 
-.category-bar.travel { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-.category-bar.hobby { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
-.category-bar.career { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
-.category-bar.health { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
-.category-bar.relationship { background: linear-gradient(135deg, #f77062 0%, #fe5196 100%); }
-.category-bar.other { background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); }
+.category-bar.travel { background: var(--category-travel); }
+.category-bar.hobby { background: var(--category-hobby); }
+.category-bar.career { background: var(--category-career); }
+.category-bar.health { background: var(--category-health); }
+.category-bar.relationship { background: var(--category-relationship); }
+.category-bar.other { background: var(--category-other); }
 
 /* 목표 헤더 */
 .goal-header {
@@ -4832,10 +4943,9 @@ body {
 }
 
 .goal-title {
-    font-size: 20px;
-    font-weight: 600;
-    color: #2d3748;
-    margin-bottom: 8px;
+    font: var(--title-3);
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-s);
     flex: 1;
     line-height: 1.3;
 }
@@ -4843,7 +4953,7 @@ body {
 .goal-metadata {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--spacing-s);
     margin-bottom: 16px;
 }
 
@@ -4903,7 +5013,7 @@ body {
 .task-list {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: var(--spacing-s);
     max-height: 300px;
     overflow-y: auto;
 }
@@ -4922,7 +5032,7 @@ body {
 .task-item-header {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: var(--spacing-s);
 }
 
 .task-checkbox {
@@ -4935,9 +5045,8 @@ body {
 
 .task-text {
     flex: 1;
-    font-size: 14px;
-    font-weight: 500;
-    color: #2d3748;
+    font: var(--body);
+    color: var(--text-primary);
 }
 
 .task-expand-btn {
@@ -4982,13 +5091,13 @@ body {
 .task-notes {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: var(--spacing-s);
     margin-bottom: 8px;
 }
 
 .task-note {
     display: flex;
-    gap: 8px;
+    gap: var(--spacing-s);
     align-items: flex-start;
     font-size: 13px;
     color: #4a5568;
@@ -5053,7 +5162,7 @@ body {
 
 .note-actions {
     display: flex;
-    gap: 8px;
+    gap: var(--spacing-s);
     margin-top: 8px;
     justify-content: flex-end;
 }
@@ -5114,7 +5223,7 @@ body {
 /* 액션 버튼 그룹 */
 .goal-actions {
     display: flex;
-    gap: 8px;
+    gap: var(--spacing-s);
     margin-top: 20px;
     padding-top: 20px;
     border-top: 1px solid #e2e8f0;
@@ -5176,7 +5285,7 @@ body {
     margin-bottom: 16px;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--spacing-s);
 }
 
 .recommendation-chips {
@@ -5208,7 +5317,7 @@ body {
 .quick-task-add {
     margin-top: 12px;
     display: flex;
-    gap: 8px;
+    gap: var(--spacing-s);
 }
 
 .quick-task-input {
@@ -5239,18 +5348,18 @@ body {
 
 /* 태스크 아이템 - 더 깔끔하고 미니멀하게 */
 .task-item {
-    background: #ffffff;
-    border: 1px solid #e5e5e7;
-    border-radius: 10px;
-    padding: 12px 16px;
+    background: var(--surface-secondary);
+    border: 1px solid var(--divider);
+    border-radius: var(--spacing-s);
+    padding: var(--spacing-s) var(--spacing-m);
     transition: all 0.2s ease;
     position: relative;
     cursor: default;
 }
 
 .task-item:hover {
-    background: #f5f5f7;
-    border-color: #d2d2d7;
+    background: var(--gray-100);
+    border-color: var(--gray-300);
 }
 
 .task-item.completed {
@@ -5290,7 +5399,7 @@ body {
 /* 태스크 편집 액션 버튼 */
 .task-edit-actions {
     display: flex;
-    gap: 8px;
+    gap: var(--spacing-s);
     margin-top: 8px;
 }
 
@@ -5469,7 +5578,7 @@ body {
     background: #F2F2F7;
     border-radius: 8px;
     display: flex;
-    gap: 8px;
+    gap: var(--spacing-s);
 }
 
 .quick-task-input {
@@ -5643,7 +5752,7 @@ body {
 .inline-task-add {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--spacing-s);
     padding: 8px 12px;
     margin-top: 8px;
     border: 2px dashed #E5E5EA;
@@ -5663,7 +5772,7 @@ body {
 
 .inline-task-add-form {
     display: none;
-    gap: 8px;
+    gap: var(--spacing-s);
     margin-top: 8px;
 }
 
@@ -5727,7 +5836,7 @@ body {
     top: 16px;
     right: 16px;
     display: flex;
-    gap: 8px;
+    gap: var(--spacing-s);
 }
 
 .btn-goal-menu {
@@ -5883,4 +5992,59 @@ body {
 .task-content:hover {
     background: rgba(0, 122, 255, 0.03);
     cursor: text;
+}
+
+/* iOS 스타일 모바일 최적화 */
+@media (max-width: 768px) {
+    .goal-card {
+        border-radius: 16px;
+        margin: 0 -16px;
+        padding: var(--spacing-m);
+        border-left: none;
+        border-right: none;
+    }
+    
+    .nav-tabs {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+    
+    .nav-tabs::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .nav-tab {
+        flex-shrink: 0;
+        white-space: nowrap;
+        min-width: 100px;
+    }
+    
+    .modal-content {
+        margin: var(--spacing-l);
+        width: calc(100% - 32px);
+        max-width: none;
+        border-radius: 20px;
+    }
+    
+    .goal-title {
+        font-size: 18px;
+        line-height: 1.3;
+    }
+    
+    .task-item {
+        padding: var(--spacing-m);
+        border-radius: 12px;
+    }
+    
+    .button, .btn {
+        padding: 12px 20px;
+        font-size: 16px;
+        border-radius: 10px;
+    }
+    
+    body {
+        padding: var(--spacing-s);
+    }
 }
