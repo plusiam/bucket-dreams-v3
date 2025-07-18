@@ -1712,6 +1712,9 @@
             // 클릭 이벤트 위임
             document.addEventListener('click', this.handleClick.bind(this));
             
+            // 더블클릭 이벤트 위임
+            document.addEventListener('dblclick', this.handleDoubleClick.bind(this));
+            
             // 키보드 이벤트
             document.addEventListener('keydown', this.handleKeydown.bind(this));
             
@@ -1790,6 +1793,20 @@
                 this.handleTaskToggle(goalId, taskId, completed);
             }
             
+            // 태스크 편집 저장
+            if (target.classList.contains('task-save-btn')) {
+                const goalId = target.dataset.goalId;
+                const taskId = target.dataset.taskId;
+                this.handleTaskSave(goalId, taskId);
+            }
+            
+            // 태스크 편집 취소
+            if (target.classList.contains('task-edit-cancel-btn')) {
+                const goalId = target.dataset.goalId;
+                const taskId = target.dataset.taskId;
+                this.handleTaskEditCancel(goalId, taskId);
+            }
+            
             // 노트 추가 버튼
             if (target.classList.contains('btn-add-note')) {
                 const goalId = target.dataset.goalId;
@@ -1864,6 +1881,19 @@
             if (target.closest('.btn-share-achievement')) {
                 const goalId = target.dataset.goalId;
                 this.handleShareAchievement(goalId);
+            }
+        },
+        
+        // 더블클릭 이벤트 핸들러
+        handleDoubleClick(e) {
+            const target = e.target;
+            
+            // 태스크 텍스트 더블클릭으로 편집
+            if (target.classList.contains('task-text')) {
+                const taskItem = target.closest('.task-item');
+                const goalId = taskItem.querySelector('.task-checkbox').dataset.goalId;
+                const taskId = taskItem.querySelector('.task-checkbox').dataset.taskId;
+                this.handleTaskEdit(goalId, taskId);
             }
         },
 
@@ -2929,6 +2959,68 @@
                 this.render();
                 View.showNotification('목표가 다시 활성화되었습니다.', 'success');
             }
+        },
+        
+        // 태스크 편집 모드 진입
+        handleTaskEdit(goalId, taskId) {
+            const taskItem = document.querySelector(`.task-item[data-task-id="${taskId}"]`);
+            if (!taskItem) return;
+            
+            const taskText = taskItem.querySelector('.task-text');
+            const currentText = taskText.textContent;
+            
+            // 편집 UI로 변경
+            taskText.innerHTML = `
+                <input type="text" class="task-edit-input" value="${Utils.escapeHtml(currentText)}" 
+                       data-goal-id="${goalId}" data-task-id="${taskId}">
+                <div class="task-edit-actions">
+                    <button class="task-save-btn" data-goal-id="${goalId}" data-task-id="${taskId}">저장</button>
+                    <button class="task-edit-cancel-btn" data-goal-id="${goalId}" data-task-id="${taskId}">취소</button>
+                </div>
+            `;
+            
+            // 입력 필드에 포커스
+            const input = taskText.querySelector('.task-edit-input');
+            input.focus();
+            input.select();
+            
+            // 엔터 키로 저장
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    this.handleTaskSave(goalId, taskId);
+                } else if (e.key === 'Escape') {
+                    this.handleTaskEditCancel(goalId, taskId);
+                }
+            });
+        },
+        
+        // 태스크 저장
+        handleTaskSave(goalId, taskId) {
+            const input = document.querySelector(`.task-edit-input[data-task-id="${taskId}"]`);
+            if (!input) return;
+            
+            const newText = input.value.trim();
+            if (!newText) {
+                View.showNotification('태스크 내용을 입력해주세요.', 'warning');
+                return;
+            }
+            
+            // 데이터 업데이트
+            const goal = DataModel.state.currentProfile?.bucketList.find(g => g.id === goalId);
+            if (goal && goal.tasks) {
+                const task = goal.tasks.find(t => t.id === taskId);
+                if (task) {
+                    task.text = newText;
+                    DataModel.saveProfiles();
+                    this.render();
+                    View.showNotification('태스크가 수정되었습니다.', 'success');
+                }
+            }
+        },
+        
+        // 태스크 편집 취소
+        handleTaskEditCancel(goalId, taskId) {
+            this.render(); // 전체 다시 렌더링하여 원래 상태로 복구
         },
 
         // 필터 변경
