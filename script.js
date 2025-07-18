@@ -1191,10 +1191,15 @@
         },
 
         // 프로필 선택자 렌더링
-        renderProfileSelector(profiles) {
+        renderProfileSelector(profiles = []) {
+            console.log('View.renderProfileSelector called with:', profiles);
             const container = document.getElementById('profileOptions');
-            if (!container) return;
+            if (!container) {
+                console.error('profileOptions container not found!');
+                return;
+            }
 
+            // 프로필이 없어도 버튼은 표시
             container.innerHTML = profiles.map(profile => {
                 const stats = this.calculateProfileStats(profile);
                 return `
@@ -1616,9 +1621,13 @@
                 console.log('Loading image settings...');
                 ImageProcessor.loadSettings();
                 
-                // 차트 초기화
-                console.log('Initializing charts...');
-                ChartManager.initCharts();
+                // 차트 초기화 (일시적으로 try-catch로 감싸기)
+                try {
+                    console.log('Initializing charts...');
+                    ChartManager.initCharts();
+                } catch (chartError) {
+                    console.warn('Chart initialization skipped:', chartError);
+                }
                 
                 // 데이터 로드
                 console.log('Loading profiles...');
