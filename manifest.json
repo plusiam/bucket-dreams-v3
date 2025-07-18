@@ -1,0 +1,43 @@
+{
+  "name": "나의 버킷리스트",
+  "short_name": "버킷리스트",
+  "description": "인생에서 꼭 해보고 싶은 것들을 기록하고 달성해보세요",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4facfe",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512", 
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><defs><linearGradient id='grad1' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' style='stop-color:%234facfe;stop-opacity:1' /><stop offset='100%' style='stop-color:%2300f2fe;stop-opacity:1' /></linearGradient></defs><rect width='192' height='192' rx='38' fill='url(%23grad1)'/><text x='96' y='96' font-size='96' text-anchor='middle' dy='0.35em'>🎯</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["lifestyle", "productivity"],
+  "lang": "ko-KR",
+  "dir": "ltr",
+  "scope": "./",
+  "shortcuts": [
+    {
+      "name": "새 목표 추가",
+      "short_name": "목표 추가", 
+      "description": "새로운 버킷리스트 목표를 추가합니다",
+      "url": "./?action=add"
+    }
+  ],
+  "prefer_related_applications": false
+}

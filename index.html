@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>🎯 Bucket Dreams - 나의 버킷리스트</title>
+    <meta name="description" content="개인 및 공용 기기에서 사용할 수 있는 버킷리스트 관리 앱. 목표를 설정하고 달성 과정을 기록하세요.">
+    <meta name="keywords" content="버킷리스트, 목표관리, 생산성, 개인계획, 달성, 꿈">
+    <meta name="author" content="룰루랄라 한기쌤">
+    
+    <!-- PWA 설정 -->
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#4facfe">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="버킷리스트">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="msapplication-TileColor" content="#4facfe">
+    <meta name="msapplication-config" content="browserconfig.xml">
+    
+    <!-- 파비콘 -->
+    <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16x16.png">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    
+    <!-- 소셜 미디어 메타태그 -->
+    <meta property="og:title" content="🎯 Bucket Dreams - 나의 버킷리스트">
+    <meta property="og:description" content="인생에서 꼭 해보고 싶은 것들을 기록하고 달성해보세요">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://plusiam.github.io/bucket-dreams">
+    <meta property="og:image" content="https://plusiam.github.io/bucket-dreams/og-image.png">
+    <meta property="og:site_name" content="Bucket Dreams">
+    <meta property="og:locale" content="ko_KR">
+    
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="🎯 Bucket Dreams - 나의 버킷리스트">
+    <meta name="twitter:description" content="인생에서 꼭 해보고 싶은 것들을 기록하고 달성해보세요">
+    <meta name="twitter:image" content="https://plusiam.github.io/bucket-dreams/og-image.png">
+    
+    <!-- 보안 및 성능 -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    
+    <!-- 폰트 및 외부 리소스 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- 외부 라이브러리 (지연 로딩) -->
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" as="script">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" as="script">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    
+    <!-- 스타일시트 -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- 구조화된 데이터 -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Bucket Dreams",
+      "description": "개인 및 공용 기기에서 사용할 수 있는 버킷리스트 관리 앱",
+      "url": "https://plusiam.github.io/bucket-dreams",
+      "applicationCategory": "ProductivityApplication",
+      "operatingSystem": "Any",
+      "permissions": "browser",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "KRW"
+      },
+      "author": {
+        "@type": "Person",
+        "name": "룰루랄라 한기쌤"
+      },
+      "inLanguage": "ko",
+      "isAccessibleForFree": true,
+      "browserRequirements": "Requires JavaScript. Requires HTML5."
+    }
+    </script>
+</head>
+
+<body>
+    <!-- 프로필 선택 화면 -->
+    <section class="profile-selector" id="profileSelector" role="main" aria-label="사용자 프로필 선택">
+        <header>
+            <h1>🎯 버킷리스트</h1>
+            <p>사용자를 선택하거나 새로 시작하세요</p>
+        </header>
+        
+        <div class="profile-options" id="profileOptions" role="list" aria-label="사용자 프로필 목록">
+            <!-- 기존 프로필들과 새 사용자 옵션이 여기에 동적 생성됩니다 -->
+        </div>
+    </section>
+
+    <!-- 메인 앱 화면 -->
+    <main class="container main-app" id="mainApp">
+        <header class="header">
+            <div class="header-content">
+                <h1 id="headerTitle">🎯 나의 버킷리스트</h1>
+                <p>인생에서 꼭 해보고 싶은 것들을 기록하고 달성해보세요</p>
+            </div>
+            <nav class="header-controls" aria-label="헤더 메뉴">
+                <button class="header-btn" id="settingsBtn" aria-label="이미지 설정 열기">⚙️ 이미지 설정</button>
+                <button class="header-btn" id="userSwitchBtn" aria-label="다른 사용자로 전환">👥 사용자 전환</button>
+                <button class="header-btn" id="finishBtn" aria-label="현재 세션 종료">🚪 사용 완료</button>
+            </nav>
+        </header>
+
+        <nav class="nav-tabs" role="tablist" aria-label="메인 탭 메뉴">
+            <button class="nav-tab active" data-tab="goals" role="tab" aria-selected="true" aria-controls="goals-tab" tabindex="0" id="goals-tab-button">📝 목표 관리</button>
+            <button class="nav-tab" data-tab="journey" role="tab" aria-selected="false" aria-controls="journey-tab" tabindex="-1" id="journey-tab-button">🌟 꿈의 여정</button>
+            <button class="nav-tab" data-tab="gallery" role="tab" aria-selected="false" aria-controls="gallery-tab" tabindex="-1" id="gallery-tab-button">🏆 완료 갤러리</button>
+            <button class="nav-tab" data-tab="insights" role="tab" aria-selected="false" aria-controls="insights-tab" tabindex="-1" id="insights-tab-button">📊 인사이트</button>
+            <button class="nav-tab" data-tab="social" role="tab" aria-selected="false" aria-controls="social-tab" tabindex="-1" id="social-tab-button">👨‍👩‍👧‍👦 소셜</button>
+            <button class="nav-tab" data-tab="data" role="tab" aria-selected="false" aria-controls="data-tab" tabindex="-1" id="data-tab-button">💾 데이터 관리</button>
+        </nav>
+
+        <!-- 목표 관리 탭 -->
+        <section class="tab-content active" id="goals-tab" role="tabpanel" aria-labelledby="goals-tab-button">
+            <div class="controls">
+                <form class="add-form" aria-label="새 목표 추가 폼" role="form">
+                    <div class="form-group">
+                        <label for="goalInput">목표</label>
+                        <input type="text" id="goalInput" placeholder="예: 오로라 보기, 마라톤 완주하기" aria-describedby="goal-help" aria-required="true" maxlength="100" autocomplete="off">
+                        <div id="goal-help" class="sr-only">달성하고 싶은 목표를 입력하세요. 엔터키로도 추가할 수 있습니다.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="categorySelect">카테고리</label>
+                        <select id="categorySelect" aria-label="목표 카테고리 선택" aria-required="true">
+                            <option value="travel">🌍 여행</option>
+                            <option value="hobby">🎨 취미</option>
+                            <option value="career">💼 커리어</option>
+                            <option value="relationship">👥 인간관계</option>
+                            <option value="health">💪 건강</option>
+                            <option value="other">✨ 기타</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="emotionSelect">현재 기분</label>
+                        <select id="emotionSelect" aria-label="목표에 대한 현재 감정 선택">
+                            <option value="excited">😍 설렘</option>
+                            <option value="determined">💪 결단</option>
+                            <option value="curious">🤔 호기심</option>
+                            <option value="anxious">😰 불안</option>
+                            <option value="hopeful">🌟 희망</option>
+                        </select>
+                    </div>
+                    <button type="button" class="btn btn-primary" id="addGoalBtn" aria-label="새 목표 추가하기">추가</button>
+                </form>
+
+                <nav class="filters" role="group" aria-label="카테고리 필터">
+                    <button class="filter-btn active" data-category="all" role="button" tabindex="0" aria-pressed="true">전체</button>
+                    <button class="filter-btn" data-category="travel" role="button" tabindex="0" aria-pressed="false">🌍 여행</button>
+                    <button class="filter-btn" data-category="hobby" role="button" tabindex="0" aria-pressed="false">🎨 취미</button>
+                    <button class="filter-btn" data-category="career" role="button" tabindex="0" aria-pressed="false">💼 커리어</button>
+                    <button class="filter-btn" data-category="relationship" role="button" tabindex="0" aria-pressed="false">👥 인간관계</button>
+                    <button class="filter-btn" data-category="health" role="button" tabindex="0" aria-pressed="false">💪 건강</button>
+                    <button class="filter-btn" data-category="other" role="button" tabindex="0" aria-pressed="false">✨기타</button>
+                </nav>
+
+                <!-- 스마트 추천 섹션 -->
+                <div class="smart-recommendations" id="smartRecommendations">
+                    <h3>💡 개인 맞춤 추천</h3>
+                    <div class="recommendation-cards" id="recommendationCards">
+                        <!-- 동적 생성 -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="content">
+                <section class="stats" aria-label="목표 통계">
+                    <div class="stat-card" role="img" aria-label="총 목표 개수">
+                        <div class="stat-number" id="totalCount" aria-live="polite">0</div>
+                        <div class="stat-label">총 목표</div>
+                    </div>
+                    <div class="stat-card" role="img" aria-label="완료된 목표 개수">
+                        <div class="stat-number" id="completedCount" aria-live="polite">0</div>
+                        <div class="stat-label">완료</div>
+                    </div>
+                    <div class="stat-card" role="img" aria-label="진행률 퍼센트">
+                        <div class="stat-number" id="progressPercent" aria-live="polite">0%</div>
+                        <div class="stat-label">진행률</div>
+                    </div>
+                    <div class="stat-card motivation-card" role="img" aria-label="동기 지수">
+                        <div class="stat-number" id="motivationIndex" aria-live="polite">0</div>
+                        <div class="stat-label">동기 지수</div>
+                    </div>
+                </section>
+
+                <section class="bucket-list" id="bucketList" aria-label="버킷리스트 목록" role="region">
+                    <div class="empty-state">
+                        <h3>아직 목표가 없습니다</h3>
+                        <p>첫 번째 버킷리스트를 추가해보세요!</p>
+                    </div>
+                </section>
+            </div>
+
+            <div class="download-section">
+                <button class="btn btn-secondary" id="downloadPdfBtn" aria-label="전체 리스트를 PDF로 다운로드">📄 전체 리스트 PDF 다운로드</button>
+            </div>
+        </section>
+
+        <!-- 꿈의 여정 탭 - 개선된 UI 버전 -->
+        <section class="tab-content" id="journey-tab" role="tabpanel" aria-labelledby="journey-tab-button">
+            <div class="journey-content">
+                <!-- 헤더 -->
+                <div class="journey-header">
+                    <h2>🌟 나의 꿈 여정</h2>
+                    <p>지금까지 걸어온 길과 앞으로 나아갈 방향을 시각화로 확인해보세요</p>
+                    
+                    <!-- 새로운 빠른 액션 버튼들 -->
+                    <div class="quick-actions">
+                        <button class="quick-action-btn" onclick="navigateToGoalsTab()">
+                            ➕ 새 목표 추가
+                        </button>
+                        <button class="quick-action-btn" onclick="showEmotionCheckModal()">
+                            😊 감정 체크인
+                        </button>
+                        <button class="quick-action-btn" onclick="shareJourneyProgress()">
+                            📤 진행상황 공유
+                        </button>
+                        <button class="quick-action-btn" onclick="generateDailyMotivation()">
+                            💪 동기부여 받기
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 전체 진행률 서클 -->
+                <div class="progress-circle-container">
+                    <div class="progress-circle" id="journeyProgressCircle" style="--progress: 0">
+                        <div class="progress-inner">
+                            <div class="progress-text" id="journeyProgressText">0%</div>
+                            <div class="progress-label">전체 달성률</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 성과 하이라이트 -->
+                <div class="achievement-highlights">
+                    <h3>🏆 이달의 성과 하이라이트</h3>
+                    <div class="highlight-items">
+                        <div class="highlight-item">
+                            <div class="highlight-number" id="monthlyAchievements">0</div>
+                            <div class="highlight-label">이달 달성 목표</div>
+                        </div>
+                        <div class="highlight-item">
+                            <div class="highlight-number" id="weeklyStreak">0</div>
+                            <div class="highlight-label">연속 활동 일수</div>
+                        </div>
+                        <div class="highlight-item">
+                            <div class="highlight-number" id="motivationScore">0</div>
+                            <div class="highlight-label">평균 동기 점수</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 통계 카드 -->
+                <div class="journey-stats-grid">
+                    <div class="journey-stat-card">
+                        <div class="stat-icon">📅</div>
+                        <div class="stat-number" id="journeyDays">0</div>
+                        <div class="stat-label">꿈을 키운 일수</div>
+                        <div class="stat-change" id="journeyDaysChange">새로운 시작!</div>
+                    </div>
+                    <div class="journey-stat-card">
+                        <div class="stat-icon">🔥</div>
+                        <div class="stat-number" id="journeyStreak">0</div>
+                        <div class="stat-label">연속 달성 기록</div>
+                        <div class="stat-change" id="journeyStreakChange">연속 달성하기</div>
+                    </div>
+                    <div class="journey-stat-card">
+                        <div class="stat-icon">🏆</div>
+                        <div class="stat-number" id="journeyMilestones">0</div>
+                        <div class="stat-label">달성한 마일스톤</div>
+                        <div class="stat-change" id="journeyMilestonesChange">첫 목표 달성하기</div>
+                    </div>
+                    <div class="journey-stat-card">
+                        <div class="stat-icon">💪</div>
+                        <div class="stat-number" id="journeyMotivation">0</div>
+                        <div class="stat-label">평균 동기 지수</div>
+                        <div class="stat-change" id="journeyMotivationChange">동기 향상 중</div>
+                    </div>
+                </div>
+
+                <!-- 달성 타임라인 -->
+                <div class="timeline-section">
+                    <div class="timeline-header">
+                        <h3 class="timeline-title">📅 달성 타임라인</h3>
+                        <div class="timeline-filter">
+                            <button class="timeline-filter-btn active" data-period="all" onclick="filterJourneyTimeline('all')">전체</button>
+                            <button class="timeline-filter-btn" data-period="month" onclick="filterJourneyTimeline('month')">이번 달</button>
+                            <button class="timeline-filter-btn" data-period="quarter" onclick="filterJourneyTimeline('quarter')">최근 3개월</button>
+                            <button class="timeline-filter-btn" data-period="year" onclick="filterJourneyTimeline('year')">올해</button>
+                        </div>
+                    </div>
+                    <div class="timeline" id="achievementTimeline">
+                        <div class="timeline-empty">
+                            <div class="timeline-empty-icon">🌟</div>
+                            <div class="timeline-empty-title">아직 달성한 목표가 없습니다</div>
+                            <div class="timeline-empty-subtitle">첫 번째 목표를 달성해서 여정을 시작해보세요!</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 카테고리별 진행률 -->
+                <div class="category-progress-section">
+                    <h3 class="section-title">📊 카테고리별 진행 현황</h3>
+                    <div class="category-progress-grid" id="categoryProgressGrid">
+                        <!-- 동적 생성 -->
+                    </div>
+                </div>
+
+                <!-- 감정 패턴 차트 -->
+                <div class="emotion-chart-section">
+                    <h3 class="section-title">😊 감정 패턴 분석</h3>
+                    <div class="chart-container">
+                        <canvas id="journeyEmotionChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- 개인화된 인사이트 -->
+                <div class="insight-card">
+                    <div class="insight-title">🔍 개인화된 인사이트</div>
+                    <div class="insight-text" id="personalInsightText">
+                        목표를 추가하고 달성해보세요! 당신만의 패턴과 성향을 분석해드립니다.
+                    </div>
+                </div>
+
+                <!-- 동기 부여 섹션 -->
+                <div class="motivation-section">
+                    <div class="motivation-title">✨ 오늘의 동기 부여</div>
+                    <div class="motivation-quote" id="dailyMotivationQuote">
+                        "성공은 최종 목적지가 아니라 여정 자체입니다. 
+                        오늘 하루도 꿈을 향해 한 걸음 더 나아가세요!"
+                    </div>
+                    <button class="motivation-action" id="addNewGoalFromJourney" onclick="navigateToGoalsTab()">
+                        새로운 목표 추가하기
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 완료 갤러리 탭 -->
+        <section class="tab-content" id="gallery-tab" role="tabpanel" aria-labelledby="gallery-tab-button">
+            <div class="content">
+                <div class="sort-controls">
+                    <label for="gallerySort" class="sort-label">정렬:</label>
+                    <select class="sort-select" id="gallerySort" aria-label="갤러리 정렬 방식 선택">
+                        <option value="date-desc">최신 완료순</option>
+                        <option value="date-asc">오래된 완료순</option>
+                        <option value="category">카테고리별</option>
+                        <option value="emotion">감정별</option>
+                    </select>
+                </div>
+                
+                <section class="gallery-grid" id="galleryGrid" aria-label="완료된 목표 갤러리" role="region">
+                    <div class="empty-state">
+                        <h3>완료된 목표가 없습니다</h3>
+                        <p>첫 번째 목표를 달성해보세요!</p>
+                    </div>
+                </section>
+            </div>
+        </section>
+
+        <!-- 인사이트 탭 -->
+        <section class="tab-content" id="insights-tab" role="tabpanel" aria-labelledby="insights-tab-button">
+            <div class="insights-content">
+                <div class="insights-header">
+                    <h2>📊 나의 꿈 분석</h2>
+                    <p>데이터로 보는 나의 성장과 패턴</p>
+                </div>
+                
+                <div class="insights-grid">
+                    <div class="insight-card">
+                        <h3>📈 달성률 분석</h3>
+                        <canvas id="achievementChart"></canvas>
+                    </div>
+                    
+                    <div class="insight-card">
+                        <h3>😊 감정 패턴</h3>
+                        <canvas id="emotionChart"></canvas>
+                    </div>
+                    
+                    <div class="insight-card">
+                        <h3>⏰ 달성 시간 패턴</h3>
+                        <canvas id="timePatternChart"></canvas>
+                    </div>
+                    
+                    <div class="insight-card">
+                        <h3>🎯 카테고리 분포</h3>
+                        <canvas id="categoryDistributionChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="smart-insights">
+                    <h3>🔍 개인화된 인사이트</h3>
+                    <div class="insight-items" id="personalInsights">
+                        <!-- 동적 생성 -->
+                    </div>
+                </div>
+                
+                <div class="prediction-section">
+                    <h3>🔮 달성 예측</h3>
+                    <div class="prediction-cards" id="predictionCards">
+                        <!-- 동적 생성 -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 소셜 탭 -->
+        <section class="tab-content" id="social-tab" role="tabpanel" aria-labelledby="social-tab-button">
+            <div class="social-content">
+                <div class="social-header">
+                    <h2>👨‍👩‍👧‍👦 함께하는 꿈</h2>
+                    <p>가족과 친구들과 꿈을 공유하고 응원받으세요</p>
+                </div>
+                
+                <div class="family-section">
+                    <h3>👨‍👩‍👧‍👦 가족 연결</h3>
+                    <div class="family-members" id="familyMembers">
+                        <!-- 동적 생성 -->
+                    </div>
+                    <button class="btn btn-primary" id="addFamilyBtn">가족 구성원 추가</button>
+                </div>
+                
+                <div class="shared-goals-section">
+                    <h3>🤝 공유된 목표</h3>
+                    <div class="shared-goals" id="sharedGoals">
+                        <!-- 동적 생성 -->
+                    </div>
+                </div>
+                
+                <div class="family-challenges-section">
+                    <h3>🏆 가족 도전</h3>
+                    <div class="family-challenges" id="familyChallenges">
+                        <!-- 동적 생성 -->
+                    </div>
+                    <button class="btn btn-success" id="createChallengeBtn">새 도전 만들기</button>
+                </div>
+                
+                <div class="encouragement-section">
+                    <h3>💪 응원 메시지</h3>
+                    <div class="encouragement-wall" id="encouragementWall">
+                        <!-- 동적 생성 -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 데이터 관리 탭 -->
+        <section class="tab-content" id="data-tab" role="tabpanel" aria-labelledby="data-tab-button">
+            <div class="content">
+                <section class="profile-management">
+                    <h3 style="margin-bottom: 15px;">👤 프로필 관리</h3>
+                    <div class="data-management" role="group" aria-label="데이터 관리 기능">
+                        <button class="btn btn-success" id="exportBtn" aria-label="내 데이터를 JSON 파일로 내보내기">📤 내 데이터 내보내기</button>
+                        <button class="btn btn-info" id="importBtn" aria-label="JSON 파일에서 데이터 가져오기">📥 데이터 가져오기</button>
+                        <input type="file" id="importFile" accept=".json" style="display: none;" aria-label="데이터 파일 선택">
+                        <button class="btn btn-warning" id="profileManagerBtn" aria-label="프로필 관리자 열기">⚙️ 프로필 관리</button>
+                        <button class="btn btn-info" id="monthlyReflectionBtn" aria-label="월간 회고 생성">📝 월간 회고</button>
+                    </div>
+                    
+                    <div style="margin-top: 15px;">
+                        <h4 style="margin-bottom: 10px; color: #dc3545;">🗑️ 데이터 삭제</h4>
+                        <div class="data-management" role="group" aria-label="데이터 삭제 기능">
+                            <button class="btn btn-warning" id="clearDataBtn" aria-label="현재 프로필의 모든 목표 삭제">🔄 내 목표 모두 삭제</button>
+                            <button class="btn btn-danger" id="deleteProfileBtn" aria-label="현재 프로필 완전 삭제">❌ 내 프로필 삭제</button>
+                            <button class="btn btn-danger btn-danger-extreme" id="clearAllBtn" aria-label="모든 프로필 완전 삭제">💥 모든 프로필 삭제</button>
+                        </div>
+                        <div style="font-size: 0.8rem; color: #dc3545; margin-top: 8px; text-align: center;" role="alert">
+                            ⚠️ 삭제된 데이터는 복구할 수 없습니다. 신중히 선택하세요.
+                        </div>
+                    </div>
+                    
+                    <section class="profile-list" id="profileList" aria-label="저장된 프로필 목록">
+                        <!-- 프로필 목록이 여기에 동적 생성됩니다 -->
+                    </section>
+                </section>
+
+                <section style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-top: 20px;">
+                    <h3 style="margin-bottom: 15px;">💡 공용 기기 사용 팁</h3>
+                    <ul style="color: #6c757d; line-height: 1.6;">
+                        <li><strong>개인 데이터 보호:</strong> 각자의 프로필로 독립적인 데이터 관리</li>
+                        <li><strong>파일 백업:</strong> 개인 JSON 파일로 안전하게 데이터 보관</li>
+                        <li><strong>자동 로그아웃:</strong> 30분 비활성 시 자동으로 사용자 선택 화면으로 이동</li>
+                        <li><strong>사용 완료:</strong> 다 사용한 후에는 "사용 완료" 버튼으로 안전하게 종료</li>
+                        <li><strong>게스트 모드:</strong> 임시 사용자는 데이터가 저장되지 않음</li>
+                        <li><strong>데이터 정리:</strong> 필요 시 목표만 삭제하거나 프로필 전체 삭제 가능</li>
+                    </ul>
+                </section>
+
+                <aside style="background: #fff3cd; padding: 15px; border-radius: 10px; margin-top: 15px; border-left: 4px solid #ffc107;" role="alert">
+                    <h4 style="margin-bottom: 10px; color: #856404;">⚠️ 데이터 삭제 안내</h4>
+                    <ul style="color: #856404; line-height: 1.5; font-size: 0.9rem;">
+                        <li><strong>내 목표 모두 삭제:</strong> 현재 프로필의 버킷리스트만 삭제 (프로필은 유지)</li>
+                        <li><strong>내 프로필 삭제:</strong> 현재 프로필과 모든 데이터 완전 삭제</li>
+                        <li><strong>모든 프로필 삭제:</strong> 앱의 모든 사용자 데이터 완전 초기화</li>
+                        <li><strong>⚠️ 주의:</strong> 삭제된 데이터는 복구할 수 없으니 백업 후 진행하세요</li>
+                    </ul>
+                </aside>
+
+                <section style="margin-top: 30px;">
+                    <h3 style="margin-bottom: 15px;">📊 현재 프로필 데이터</h3>
+                    <div class="stats" aria-label="프로필 데이터 통계">
+                        <div class="stat-card" role="img" aria-label="총 목표 수">
+                            <div class="stat-number" id="dataStatsTotal" aria-live="polite">0</div>
+                            <div class="stat-label">총 목표 수</div>
+                        </div>
+                        <div class="stat-card" role="img" aria-label="완료된 목표">
+                            <div class="stat-number" id="dataStatsCompleted" aria-live="polite">0</div>
+                            <div class="stat-label">완료된 목표</div>
+                        </div>
+                        <div class="stat-card" role="img" aria-label="데이터 크기">
+                            <div class="stat-number" id="dataStatsSize" aria-live="polite">0KB</div>
+                            <div class="stat-label">데이터 크기</div>
+                        </div>
+                        <div class="stat-card" role="img" aria-label="감정 평균">
+                            <div class="stat-number" id="dataStatsEmotion" aria-live="polite">😊</div>
+                            <div class="stat-label">평균 감정</div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </section>
+    </main>
+
+    <!-- 자동 로그아웃 알림 -->
+    <div class="auto-logout-notice" id="autoLogoutNotice" role="alert" aria-live="assertive" aria-hidden="true">
+        <span id="autoLogoutText">5분 후 자동 로그아웃됩니다</span>
+        <button id="extendBtn" aria-label="세션 연장하기">연장</button>
+    </div>
+
+    <!-- 완료/편집 모달 (감정 추가) -->
+    <div class="modal" id="completionModal" role="dialog" aria-labelledby="modalTitle" aria-describedby="modalSubtitle" aria-hidden="true" aria-modal="true">
+        <div class="modal-content">
+            <header class="modal-header">
+                <h2 class="modal-title" id="modalTitle">🎉 목표 달성!</h2>
+                <p class="modal-subtitle" id="modalSubtitle">이 순간의 느낌을 기록해보세요</p>
+            </header>
+            <form class="modal-form" role="form">
+                <label for="completionDate">달성 날짜</label>
+                <input type="date" id="completionDate" aria-required="true" max="">
+                
+                <label for="completionEmotion">달성 후 기분</label>
+                <select id="completionEmotion" aria-required="true">
+                    <option value="proud">😎 뿌듯함</option>
+                    <option value="happy">😊 행복</option>
+                    <option value="excited">🤩 신남</option>
+                    <option value="grateful">🙏 감사</option>
+                    <option value="satisfied">😌 만족</option>
+                    <option value="relieved">😮‍💨 안도</option>
+                </select>
+                
+                <label for="completionNote">달성 후기</label>
+                <textarea id="completionNote" placeholder="어떤 기분이었나요? 이 목표를 달성하면서 느낀 점이나 배운 점을 자유롭게 작성하세요." aria-describedby="note-help" maxlength="800"></textarea>
+                <div id="note-help" class="sr-only">선택사항입니다. 달성 후 느낌이나 경험을 자유롭게 작성하세요.</div>
+            </form>
+            <div class="modal-buttons">
+                <button class="btn-modal btn-cancel" id="cancelModalBtn" aria-label="모달 취소">취소</button>
+                <button class="btn-modal btn-confirm" id="saveModalBtn" aria-label="달성 정보 저장">저장</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 새 사용자 모달 -->
+    <div class="modal" id="newUserModal" role="dialog" aria-labelledby="newUserTitle" aria-hidden="true" aria-modal="true">
+        <div class="modal-content">
+            <header class="modal-header">
+                <h2 class="modal-title" id="newUserTitle">👋 새 사용자</h2>
+                <p class="modal-subtitle">버킷리스트에 표시할 이름을 입력해주세요</p>
+            </header>
+            <form class="modal-form" role="form">
+                <label for="newUserNameInput">사용자 이름</label>
+                <input type="text" id="newUserNameInput" placeholder="예: 홍길동" aria-required="true" aria-describedby="name-help" maxlength="20" autocomplete="name">
+                <div id="name-help" class="sr-only">다른 사용자와 구분할 수 있는 이름을 입력하세요. 엔터키로도 생성할 수 있습니다.</div>
+            </form>
+            <div class="modal-buttons">
+                <button class="btn-modal btn-cancel" id="cancelNewUserBtn" aria-label="사용자 생성 취소">취소</button>
+                <button class="btn-modal btn-confirm" id="createUserBtn" aria-label="새 사용자 생성">생성</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 감정 체크인 모달 -->
+    <div class="modal" id="emotionCheckModal" role="dialog" aria-labelledby="emotionCheckTitle" aria-hidden="true" aria-modal="true">
+        <div class="modal-content">
+            <header class="modal-header">
+                <h2 class="modal-title" id="emotionCheckTitle">😊 오늘의 감정 체크인</h2>
+                <p class="modal-subtitle">목표에 대한 현재 기분을 알려주세요</p>
+            </header>
+            <form class="modal-form" role="form">
+                <label for="currentEmotion">현재 감정</label>
+                <select id="currentEmotion" aria-required="true">
+                    <option value="excited">😍 설렘</option>
+                    <option value="determined">💪 결단력</option>
+                    <option value="motivated">🔥 동기부여</option>
+                    <option value="anxious">😰 불안</option>
+                    <option value="overwhelmed">😵 압도됨</option>
+                    <option value="hopeful">🌟 희망적</option>
+                    <option value="neutral">😐 보통</option>
+                </select>
+                
+                <label for="motivationLevel">동기 수준 (1-10)</label>
+                <input type="range" id="motivationLevel" min="1" max="10" value="5" class="slider">
+                <div class="slider-value" id="motivationValue">5</div>
+                
+                <label for="energyLevel">에너지 수준 (1-10)</label>
+                <input type="range" id="energyLevel" min="1" max="10" value="5" class="slider">
+                <div class="slider-value" id="energyValue">5</div>
+                
+                <label for="emotionNote">오늘의 한마디</label>
+                <textarea id="emotionNote" placeholder="목표에 대한 현재 생각이나 느낌을 자유롭게 적어보세요." maxlength="200"></textarea>
+            </form>
+            <div class="modal-buttons">
+                <button class="btn-modal btn-cancel" id="cancelEmotionBtn" aria-label="감정 체크인 취소">나중에</button>
+                <button class="btn-modal btn-confirm" id="saveEmotionBtn" aria-label="감정 기록 저장">기록하기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 월간 회고 모달 -->
+    <div class="modal" id="monthlyReflectionModal" role="dialog" aria-labelledby="reflectionTitle" aria-hidden="true" aria-modal="true">
+        <div class="modal-content reflection-modal">
+            <header class="modal-header">
+                <h2 class="modal-title" id="reflectionTitle">📝 이달의 회고</h2>
+                <p class="modal-subtitle">지난 한 달을 돌아보며 성찰해보세요</p>
+            </header>
+            <div class="reflection-content" id="reflectionContent">
+                <!-- 동적 생성 -->
+            </div>
+            <div class="modal-buttons">
+                <button class="btn-modal btn-secondary" id="exportReflectionBtn" aria-label="회고 내용 내보내기">📄 내보내기</button>
+                <button class="btn-modal btn-confirm" id="closeReflectionBtn" aria-label="회고 모달 닫기">닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 프로필 관리 모달 -->
+    <div class="modal" id="profileManagerModal" role="dialog" aria-labelledby="profileManagerTitle" aria-hidden="true" aria-modal="true">
+        <div class="modal-content" style="max-width: 500px;">
+            <header class="modal-header">
+                <h2 class="modal-title" id="profileManagerTitle">⚙️ 프로필 관리</h2>
+                <p class="modal-subtitle">저장된 사용자 프로필을 관리합니다</p>
+            </header>
+            <div id="profileManagerContent" aria-label="프로필 관리 내용">
+                <!-- 프로필 관리 내용이 여기에 동적 생성됩니다 -->
+            </div>
+            <div class="modal-buttons">
+                <button class="btn-modal btn-cancel" id="closeProfileManagerBtn" aria-label="프로필 관리자 닫기">닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 이미지 설정 모달 -->
+    <div class="modal" id="imageSettingsModal" role="dialog" aria-labelledby="imageSettingsTitle" aria-hidden="true" aria-modal="true">
+        <div class="modal-content" style="max-width: 600px;">
+            <header class="modal-header">
+                <h2 class="modal-title" id="imageSettingsTitle">🎛️ 이미지 설정</h2>
+                <p class="modal-subtitle">이미지 압축 및 품질 설정을 조정합니다</p>
+            </header>
+            <form class="modal-form image-settings-form" role="form">
+                <div class="settings-group">
+                    <label for="qualitySlider">압축 품질</label>
+                    <div class="slider-container">
+                        <input type="range" id="qualitySlider" min="0.1" max="1" step="0.1" value="0.8" aria-describedby="quality-help">
+                        <span class="slider-value" id="qualityValue">0.8</span>
+                    </div>
+                    <div id="quality-help" class="setting-help">높을수록 품질이 좋지만 파일 크기가 커집니다 (0.1 = 최저품질, 1.0 = 최고품질)</div>
+                </div>
+                
+                <div class="settings-group">
+                    <label for="maxWidthInput">최대 너비 (px)</label>
+                    <input type="number" id="maxWidthInput" min="480" max="4096" step="120" value="1200" aria-describedby="width-help">
+                    <div id="width-help" class="setting-help">이미지의 최대 너비를 설정합니다 (480px ~ 4096px)</div>
+                </div>
+                
+                <div class="settings-group">
+                    <label for="formatSelect">이미지 형식</label>
+                    <select id="formatSelect" aria-describedby="format-help">
+                        <option value="jpeg">JPEG (호환성 좋음)</option>
+                        <option value="webp">WebP (용량 작음)</option>
+                        <option value="png">PNG (무손실 압축)</option>
+                    </select>
+                    <div id="format-help" class="setting-help">WebP는 더 작은 파일 크기를 제공하지만 일부 구형 브라우저에서 지원하지 않을 수 있습니다</div>
+                </div>
+                
+                <div class="settings-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="autoCompressToggle" checked aria-describedby="compress-help">
+                        <span class="checkbox-text">자동 압축 활성화</span>
+                    </label>
+                    <div id="compress-help" class="setting-help">비활성화하면 원본 이미지를 그대로 저장합니다</div>
+                </div>
+                
+                <div class="settings-group">
+                    <label for="cameraResolutionSelect">카메라 해상도</label>
+                    <select id="cameraResolutionSelect" aria-describedby="resolution-help">
+                        <option value="hd">HD (1280x720)</option>
+                        <option value="fhd">Full HD (1920x1080)</option>
+                        <option value="4k">4K (3840x2160)</option>
+                    </select>
+                    <div id="resolution-help" class="setting-help">카메라 촬영 시 요청할 해상도입니다. 기기가 지원하지 않으면 자동으로 조정됩니다</div>
+                </div>
+                
+                <div class="settings-preview">
+                    <h4>현재 설정 미리보기</h4>
+                    <div class="preview-info">
+                        <span class="preview-item">품질: <strong id="previewQuality">0.8</strong></span>
+                        <span class="preview-item">최대 너비: <strong id="previewWidth">1200px</strong></span>
+                        <span class="preview-item">형식: <strong id="previewFormat">JPEG</strong></span>
+                        <span class="preview-item">압축: <strong id="previewCompress">활성화</strong></span>
+                    </div>
+                </div>
+            </form>
+            <div class="modal-buttons">
+                <button class="btn-modal btn-cancel" id="cancelImageSettingsBtn" aria-label="설정 취소">취소</button>
+                <button class="btn-modal btn-secondary" id="resetImageSettingsBtn" aria-label="기본값으로 재설정">기본값</button>
+                <button class="btn-modal btn-confirm" id="saveImageSettingsBtn" aria-label="설정 저장">저장</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PWA 설치 버튼 -->
+    <button class="install-btn" id="installBtn" aria-label="앱을 기기에 설치하기" aria-hidden="true">📱 앱 설치</button>
+
+    <!-- 개별 카드 다운로드용 숨겨진 영역 -->
+    <div id="hiddenCardArea" style="position: absolute; left: -9999px; top: -9999px;" aria-hidden="true"></div>
+    
+    <!-- 스크린 리더용 숨겨진 텍스트 -->
+    <div class="sr-only" role="region" aria-label="접근성 안내">
+        이 웹사이트는 스크린 리더와 키보드 네비게이션을 지원합니다. 
+        탭 키로 요소 간 이동, 엔터 또는 스페이스 키로 버튼 실행, 
+        방향키로 목록 네비게이션이 가능합니다.
+    </div>
+    
+    <!-- 로딩 인디케이터 -->
+    <div id="loadingIndicator" style="
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(255, 255, 255, 0.9);
+        padding: 20px;
+        border-radius: 10px;
+        display: none;
+        z-index: 9999;
+        backdrop-filter: blur(5px);
+    " aria-hidden="true">
+        <div style="text-align: center;">
+            <div style="
+                width: 40px;
+                height: 40px;
+                border: 4px solid #f3f3f3;
+                border-top: 4px solid #4facfe;
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+                margin: 0 auto 10px;
+            "></div>
+            <div>로딩 중...</div>
+        </div>
+    </div>
+    
+    <!-- 제작자 정보 -->
+    <footer style="
+        position: fixed;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 0.75rem;
+        color: #999;
+        text-align: center;
+        z-index: 50;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 5px 15px;
+        border-radius: 20px;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        transition: opacity 0.3s ease;
+    " role="contentinfo">
+        <span>Made with ❤️ by 룰루랄라 한기쌤</span>
+        <a href="https://www.facebook.com/playrurulala" target="_blank" rel="noopener noreferrer" style="
+            color: #1877f2;
+            text-decoration: none;
+            margin-left: 8px;
+            font-weight: 600;
+            transition: all 0.3s;
+        " id="fbLink" aria-label="룰루랄라 한기쌤 페이스북 페이지 (새 창에서 열기)">
+            <span style="font-size: 0.9rem;" aria-hidden="true">f</span> Facebook
+        </a>
+    </footer>
+
+    <!-- 태스크 관리 모달 -->
+    <div class="modal" id="taskManagerModal" role="dialog" aria-labelledby="taskManagerTitle" aria-hidden="true" aria-modal="true">
+        <div class="modal-content task-manager-modal">
+            <header class="modal-header">
+                <h2 class="modal-title" id="taskManagerTitle">📋 세부 태스크 관리</h2>
+                <p class="modal-subtitle" id="taskGoalTitle">목표를 달성하기 위한 세부 단계를 관리하세요</p>
+            </header>
+            
+            <!-- 진행률 표시 -->
+            <div class="task-progress-container">
+                <div class="task-progress-info">
+                    <span class="task-progress-label">전체 진행률</span>
+                    <span class="task-progress-percent" id="taskProgressPercent">0%</span>
+                </div>
+                <div class="task-progress-bar">
+                    <div class="task-progress-fill" id="taskProgressFill" style="width: 0%"></div>
+                </div>
+                <div class="task-stats">
+                    <span id="completedTaskCount">0</span> / <span id="totalTaskCount">0</span> 완료
+                </div>
+            </div>
+
+            <!-- 태스크 추가 폼 -->
+            <form class="task-add-form" id="taskAddForm">
+                <div class="task-input-group">
+                    <input type="text" id="newTaskInput" placeholder="새 태스크 입력 (예: 여행 계획 세우기)" maxlength="100" aria-label="새 태스크 입력">
+                    <select id="taskPriority" aria-label="태스크 우선순위">
+                        <option value="low">낮음</option>
+                        <option value="medium" selected>보통</option>
+                        <option value="high">높음</option>
+                    </select>
+                    <button type="button" class="btn-add-task" id="addTaskBtn" aria-label="태스크 추가">
+                        <span>➕ 추가</span>
+                    </button>
+                </div>
+            </form>
+
+            <!-- 태스크 목록 -->
+            <div class="task-list-container">
+                <div class="task-filter-tabs">
+                    <button class="task-filter-btn active" data-filter="all">전체</button>
+                    <button class="task-filter-btn" data-filter="active">진행중</button>
+                    <button class="task-filter-btn" data-filter="completed">완료</button>
+                </div>
+                
+                <ul class="task-list" id="taskList" role="list">
+                    <!-- 태스크 아이템이 동적으로 생성됨 -->
+                </ul>
+                
+                <div class="empty-tasks" id="emptyTasksMessage" style="display: none;">
+                    <p>아직 태스크가 없습니다. 첫 번째 태스크를 추가해보세요!</p>
+                </div>
+            </div>
+
+            <!-- 마일스톤 섹션 -->
+            <div class="milestone-section">
+                <h3 class="milestone-title">🎯 마일스톤</h3>
+                <div class="milestone-list" id="milestoneList">
+                    <!-- 마일스톤이 동적으로 생성됨 -->
+                </div>
+                <div id="emptyMilestonesMessage" class="empty-milestones-message" style="display: none;">
+                    아직 마일스톤이 없습니다. 중요한 이정표를 설정해보세요!
+                </div>
+                <button class="btn-add-milestone" id="addMilestoneBtn">
+                    <span>➕ 마일스톤 추가</span>
+                </button>
+                
+                <!-- 마일스톤 추가 폼 (숨김 상태) -->
+                <div id="milestoneForm" class="milestone-form" style="display: none;">
+                    <h4>새 마일스톤 만들기</h4>
+                    <input type="text" id="milestoneTitle" placeholder="마일스톤 제목" class="milestone-input">
+                    <input type="date" id="milestoneDate" class="milestone-date">
+                    <div class="milestone-tasks">
+                        <p class="form-hint">이 마일스톤에 포함할 태스크를 선택하세요:</p>
+                        <div id="milestoneTaskSelection" class="task-selection">
+                            <!-- 태스크 체크박스가 동적으로 추가됩니다 -->
+                        </div>
+                    </div>
+                    <div class="milestone-form-actions">
+                        <button id="saveMilestoneBtn" class="btn-save">저장</button>
+                        <button id="cancelMilestoneBtn" class="btn-cancel">취소</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-buttons">
+                <button class="btn-modal btn-primary" id="saveTasksBtn" aria-label="태스크 저장">저장</button>
+                <button class="btn-modal btn-cancel" id="closeTaskManagerBtn" aria-label="태스크 관리 닫기">닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 외부 라이브러리 (지연 로딩) -->
+    <!-- PDF 생성을 위한 라이브러리 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <!-- 메인 스크립트 -->
+    <script src="script.js"></script>
+    
+    <!-- CSS 애니메이션 (로딩 스피너) -->
+    <style>
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* 페이드 인 애니메이션 */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* 모달 애니메이션 */
+        .modal {
+            animation: modalFadeIn 0.3s ease-out;
+        }
+        
+        @keyframes modalFadeIn {
+            from { 
+                opacity: 0; 
+                backdrop-filter: blur(0px);
+            }
+            to { 
+                opacity: 1; 
+                backdrop-filter: blur(5px);
+            }
+        }
+        
+        .modal-content {
+            animation: modalSlideIn 0.3s ease-out;
+        }
+        
+        @keyframes modalSlideIn {
+            from { 
+                transform: translate(-50%, -60%);
+                opacity: 0;
+            }
+            to { 
+                transform: translate(-50%, -50%);
+                opacity: 1;
+            }
+        }
+        
+        /* 슬라이더 스타일 */
+        .slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 5px;
+            background: #d3d3d3;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #4facfe;
+            cursor: pointer;
+        }
+        
+        .slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #4facfe;
+            cursor: pointer;
+        }
+        
+        .slider-value {
+            text-align: center;
+            font-weight: 600;
+            color: #4facfe;
+            margin-top: 5px;
+        }
+    </style>
+</body>
+</html>
