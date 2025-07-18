@@ -1192,7 +1192,7 @@
 
         // 프로필 선택자 렌더링
         renderProfileSelector(profiles) {
-            const container = this.elements.profileSelector;
+            const container = document.getElementById('profileOptions');
             if (!container) return;
 
             container.innerHTML = profiles.map(profile => {
@@ -1605,23 +1605,37 @@
     const Controller = {
         // 초기화
         init() {
-            // DOM 요소 초기화
-            View.initElements();
+            console.log('Controller.init() called');
             
-            // 이미지 설정 로드
-            ImageProcessor.loadSettings();
-            
-            // 차트 초기화
-            ChartManager.initCharts();
-            
-            // 데이터 로드
-            DataModel.loadProfiles();
-            
-            // 이벤트 바인딩
-            this.bindEvents();
-            
-            // 초기 렌더링
-            this.render();
+            try {
+                // DOM 요소 초기화
+                console.log('Initializing DOM elements...');
+                View.initElements();
+                
+                // 이미지 설정 로드
+                console.log('Loading image settings...');
+                ImageProcessor.loadSettings();
+                
+                // 차트 초기화
+                console.log('Initializing charts...');
+                ChartManager.initCharts();
+                
+                // 데이터 로드
+                console.log('Loading profiles...');
+                DataModel.loadProfiles();
+                
+                // 이벤트 바인딩
+                console.log('Binding events...');
+                this.bindEvents();
+                
+                // 초기 렌더링
+                console.log('Initial render...');
+                this.render();
+                
+                console.log('Initialization complete');
+            } catch (error) {
+                console.error('Error during initialization:', error);
+            }
             
             // 자동 로그아웃 설정
             this.setupAutoLogout();
@@ -1908,18 +1922,29 @@
 
         // 렌더링
         render() {
+            console.log('Controller.render() called');
             const profiles = DataModel.state.profiles;
             const currentProfile = DataModel.state.currentProfile;
+            console.log('Profiles:', profiles);
+            console.log('Current profile:', currentProfile);
 
             if (!currentProfile) {
+                console.log('No current profile, showing profile selector');
                 // 프로필 선택 화면
-                document.getElementById('profileSelectorScreen').style.display = 'block';
-                document.getElementById('mainApp').style.display = 'none';
+                const profileSelector = document.getElementById('profileSelector');
+                const mainApp = document.getElementById('mainApp');
+                console.log('profileSelector element:', profileSelector);
+                console.log('mainApp element:', mainApp);
+                
+                if (profileSelector) profileSelector.style.display = 'block';
+                if (mainApp) mainApp.classList.remove('active');
+                
+                console.log('Calling View.renderProfileSelector with profiles:', profiles);
                 View.renderProfileSelector(profiles);
             } else {
                 // 메인 앱 화면
-                document.getElementById('profileSelectorScreen').style.display = 'none';
-                document.getElementById('mainApp').style.display = 'block';
+                document.getElementById('profileSelector').style.display = 'none';
+                document.getElementById('mainApp').classList.add('active');
                 
                 // 현재 사용자 이름 표시
                 if (View.elements.currentUserName) {
@@ -3183,7 +3208,7 @@
         // 서비스 워커 등록
         registerServiceWorker() {
             if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('/sw.js')
+                navigator.serviceWorker.register('./sw.js')
                     .then(registration => {
                         console.log('Service Worker 등록 성공:', registration);
                     })
@@ -3217,9 +3242,15 @@
     });
 
     // DOM 로드 완료 시 앱 시작
+    console.log('Script loaded, readyState:', document.readyState);
+    
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => Controller.init());
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOMContentLoaded fired');
+            Controller.init();
+        });
     } else {
+        console.log('DOM already loaded, initializing immediately');
         Controller.init();
     }
 

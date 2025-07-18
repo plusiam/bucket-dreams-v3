@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Console Test</title>
+</head>
+<body>
+    <h1>Console Test</h1>
+    <div id="output"></div>
+    
+    <script>
+        const output = document.getElementById('output');
+        
+        // 콘솔 오류 캡처
+        window.addEventListener('error', (e) => {
+            output.innerHTML += `<p style="color: red;">ERROR: ${e.message} at line ${e.lineno}</p>`;
+        });
+        
+        output.innerHTML += '<p>Script loading...</p>';
+    </script>
+    
+    <!-- 메인 스크립트 로드 -->
+    <script src="script.js"></script>
+    
+    <script>
+        output.innerHTML += '<p>Script loaded. Checking BucketDreams object...</p>';
+        
+        if (window.BucketDreams) {
+            output.innerHTML += '<p style="color: green;">✅ BucketDreams object exists</p>';
+            output.innerHTML += '<p>Properties: ' + Object.keys(window.BucketDreams).join(', ') + '</p>';
+        } else {
+            output.innerHTML += '<p style="color: red;">❌ BucketDreams object not found</p>';
+        }
+    </script>
+</body>
+</html>
