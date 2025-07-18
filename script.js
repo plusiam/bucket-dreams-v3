@@ -1292,78 +1292,143 @@
             const hasImage = goal.completionImage;
             const hasTasks = goal.tasks && goal.tasks.length > 0;
             const hasEmotionalJourney = goal.emotionalJourney && goal.emotionalJourney.length > 0;
+            
+            // 태스크 정보 가져오기
+            const tasks = goal.tasks || [];
+            const completedTasks = tasks.filter(t => t.completed).length;
+            const totalTasks = tasks.length;
+            const taskProgress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
             return `
-                <article class="goal-item ${isCompleted ? 'completed' : ''}" 
+                <article class="goal-card ${isCompleted ? 'completed' : ''}" 
                          data-id="${goal.id}" 
                          data-category="${goal.category}">
-                    <div class="goal-main">
-                        <span class="goal-category" title="${categoryInfo.name}">
-                            ${categoryInfo.icon}
-                        </span>
-                        <span class="goal-text">${Utils.escapeHtml(goal.text)}</span>
+                    <div class="goal-card-header">
+                        <div class="goal-category-icon" style="background-color: ${categoryInfo.color}20;">
+                            <span class="category-emoji">${categoryInfo.icon}</span>
+                        </div>
+                        <div class="goal-header-actions">
+                            ${hasEmotionalJourney ? `
+                                <span class="emotion-indicator" title="감정 여정 기록됨">
+                                    💭
+                                </span>
+                            ` : ''}
+                            <button class="btn-delete" data-goal-id="${goal.id}" 
+                                    title="삭제" aria-label="목표 삭제하기">
+                                🗑️
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="goal-card-body">
+                        <h3 class="goal-title">${Utils.escapeHtml(goal.text)}</h3>
                         
-                        ${hasTasks ? `
-                            <div class="goal-progress">
-                                <div class="progress-bar-mini">
-                                    <div class="progress-fill-mini" style="width: ${goal.taskProgress}%"></div>
-                                </div>
-                                <span class="progress-text-mini">${goal.taskProgress}%</span>
-                            </div>
+                        ${goal.description ? `
+                            <p class="goal-description">${Utils.escapeHtml(goal.description)}</p>
                         ` : ''}
                         
-                        ${hasEmotionalJourney ? `
-                            <span class="emotion-indicator" title="감정 여정 기록됨">
-                                💭
-                            </span>
+                        ${hasTasks ? `
+                            <div class="goal-tasks-preview">
+                                <div class="tasks-header">
+                                    <span class="tasks-count">📋 ${completedTasks}/${totalTasks} 완료</span>
+                                    <div class="progress-ring">
+                                        <svg width="24" height="24">
+                                            <circle cx="12" cy="12" r="10" fill="none" stroke="#e0e0e0" stroke-width="2"/>
+                                            <circle cx="12" cy="12" r="10" fill="none" stroke="${categoryInfo.color}" 
+                                                    stroke-width="2" stroke-dasharray="${2 * Math.PI * 10}" 
+                                                    stroke-dashoffset="${2 * Math.PI * 10 * (1 - taskProgress / 100)}"
+                                                    transform="rotate(-90 12 12)"/>
+                                        </svg>
+                                        <span class="progress-text">${taskProgress}%</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="tasks-list-preview">
+                                    ${tasks.slice(0, 3).map(task => `
+                                        <div class="task-preview-item ${task.completed ? 'completed' : ''}">
+                                            <span class="task-check">${task.completed ? '✓' : '○'}</span>
+                                            <span class="task-text">${Utils.escapeHtml(task.text)}</span>
+                                        </div>
+                                    `).join('')}
+                                    ${tasks.length > 3 ? `
+                                        <button class="btn-view-all-tasks btn-task" data-goal-id="${goal.id}">
+                                            +${tasks.length - 3}개 더보기
+                                        </button>
+                                    ` : ''}
+                                </div>
+                                
+                                ${!isCompleted ? `
+                                    <div class="quick-task-add">
+                                        <input type="text" class="quick-task-input" 
+                                               placeholder="빠른 태스크 추가..." 
+                                               data-goal-id="${goal.id}">
+                                        <button class="btn-quick-add" data-goal-id="${goal.id}">+</button>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        ` : (!isCompleted ? `
+                            <div class="no-tasks-prompt">
+                                <button class="btn-add-first-task btn-task" data-goal-id="${goal.id}">
+                                    <span class="add-icon">+</span>
+                                    첫 번째 태스크 추가하기
+                                </button>
+                            </div>
+                        ` : '')}
+                        
+                        ${goal.targetDate ? `
+                            <div class="goal-deadline">
+                                <span class="deadline-icon">📅</span>
+                                <span class="deadline-text">${Utils.formatDate(goal.targetDate)}</span>
+                            </div>
                         ` : ''}
                     </div>
                     
-                    <div class="goal-actions">
-                        ${!isCompleted ? `
-                            <button class="btn-task" data-goal-id="${goal.id}" 
-                                    title="태스크 관리" aria-label="태스크 관리">
-                                📋
-                            </button>
-                            <button class="btn-emotion" data-goal-id="${goal.id}" 
-                                    title="감정 기록" aria-label="감정 기록하기">
-                                😊
-                            </button>
-                            <button class="btn-complete" data-goal-id="${goal.id}" 
-                                    title="완료" aria-label="목표 완료하기">
-                                ✅
-                            </button>
-                        ` : ''}
-                        
-                        ${isCompleted && hasImage ? `
-                            <button class="btn-view-image" data-goal-id="${goal.id}" 
-                                    title="사진 보기" aria-label="완료 사진 보기">
-                                📷
-                            </button>
-                        ` : ''}
-                        
-                        ${isCompleted ? `
-                            <button class="btn-share" data-goal-id="${goal.id}" 
-                                    title="공유" aria-label="달성 공유하기">
-                                🔗
-                            </button>
-                        ` : ''}
-                        
-                        <button class="btn-delete" data-goal-id="${goal.id}" 
-                                title="삭제" aria-label="목표 삭제하기">
-                            🗑️
-                        </button>
+                    <div class="goal-card-footer">
+                        <div class="goal-actions-group">
+                            ${!isCompleted ? `
+                                <button class="btn-action btn-task-manage btn-task" data-goal-id="${goal.id}" 
+                                        title="태스크 관리">
+                                    <span class="action-icon">📋</span>
+                                    <span class="action-text">태스크</span>
+                                </button>
+                                <button class="btn-action btn-emotion" data-goal-id="${goal.id}" 
+                                        title="감정 기록">
+                                    <span class="action-icon">😊</span>
+                                    <span class="action-text">감정</span>
+                                </button>
+                                <button class="btn-action btn-complete-goal btn-complete" data-goal-id="${goal.id}" 
+                                        title="목표 완료">
+                                    <span class="action-icon">✅</span>
+                                    <span class="action-text">완료</span>
+                                </button>
+                            ` : `
+                                ${hasImage ? `
+                                    <button class="btn-action btn-view-image" data-goal-id="${goal.id}" 
+                                            title="사진 보기">
+                                        <span class="action-icon">📷</span>
+                                        <span class="action-text">사진</span>
+                                    </button>
+                                ` : ''}
+                                <button class="btn-action btn-share" data-goal-id="${goal.id}" 
+                                        title="공유">
+                                    <span class="action-icon">🔗</span>
+                                    <span class="action-text">공유</span>
+                                </button>
+                            `}
+                        </div>
                     </div>
                     
                     ${isCompleted && goal.completionNote ? `
-                        <div class="goal-completion-note">
-                            <small>${Utils.formatDate(goal.completedAt)}</small>
-                            ${goal.completionEmotion ? `
-                                <span class="completion-emotion">
-                                    ${CONFIG.EMOTIONS[goal.completionEmotion]?.emoji || '😊'}
-                                </span>
-                            ` : ''}
-                            <p>${Utils.escapeHtml(goal.completionNote)}</p>
+                        <div class="goal-completion-banner">
+                            <div class="completion-header">
+                                <span class="completion-date">${Utils.formatDate(goal.completedAt)}</span>
+                                ${goal.completionEmotion ? `
+                                    <span class="completion-emotion">
+                                        ${CONFIG.EMOTIONS[goal.completionEmotion]?.emoji || '😊'}
+                                    </span>
+                                ` : ''}
+                            </div>
+                            <p class="completion-note">${Utils.escapeHtml(goal.completionNote)}</p>
                         </div>
                     ` : ''}
                 </article>
@@ -1701,6 +1766,16 @@
                 const goalId = target.closest('.btn-task').dataset.goalId;
                 this.handleTaskManager(goalId);
             }
+            
+            // 빠른 태스크 추가 버튼
+            if (target.closest('.btn-quick-add')) {
+                const goalId = target.closest('.btn-quick-add').dataset.goalId;
+                const input = document.querySelector(`.quick-task-input[data-goal-id="${goalId}"]`);
+                if (input && input.value.trim()) {
+                    this.handleQuickTaskAdd(goalId, input.value.trim());
+                    input.value = '';
+                }
+            }
 
             if (target.closest('.btn-emotion')) {
                 const goalId = target.closest('.btn-emotion').dataset.goalId;
@@ -1788,6 +1863,16 @@
                 const tabIndex = parseInt(e.key) - 1;
                 if (tabs[tabIndex]) {
                     View.switchTab(tabs[tabIndex]);
+                }
+            }
+            
+            // 빠른 태스크 추가 (Enter 키)
+            if (e.key === 'Enter' && e.target.classList.contains('quick-task-input')) {
+                e.preventDefault();
+                const goalId = e.target.dataset.goalId;
+                if (e.target.value.trim()) {
+                    this.handleQuickTaskAdd(goalId, e.target.value.trim());
+                    e.target.value = '';
                 }
             }
         },
@@ -2293,6 +2378,18 @@
             input.value = '';
             this.renderTasks(this.currentTaskGoalId);
             this.render(); // 메인 화면도 업데이트 (진행률 반영)
+        },
+        
+        // 빠른 태스크 추가
+        handleQuickTaskAdd(goalId, taskText) {
+            const taskData = {
+                text: taskText,
+                priority: 'medium' // 기본 우선순위
+            };
+
+            DataModel.addTask(goalId, taskData);
+            this.render(); // 메인 화면 업데이트 (진행률 반영)
+            View.showNotification('태스크가 추가되었습니다.', 'success');
         },
 
         // 태스크 토글
