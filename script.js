@@ -38,6 +38,12 @@
             maxWidth: 1200,
             format: 'jpeg',
             autoCompress: true
+        },
+        RECURRING_TYPES: {
+            daily: { name: '매일', icon: '📅', interval: 1 },
+            weekly: { name: '매주', icon: '📆', interval: 7 },
+            monthly: { name: '매월', icon: '🗓️', interval: 30 },
+            yearly: { name: '매년', icon: '🎯', interval: 365 }
         }
     };
 
@@ -376,7 +382,7 @@
         },
 
         // 목표 관리
-        addGoal(text, category) {
+        addGoal(text, category, recurring = null) {
             if (!this.state.currentProfile) return null;
 
             const goal = {
@@ -395,12 +401,90 @@
                 milestones: [],
                 priority: 'medium',
                 tags: [],
-                reminders: []
+                reminders: [],
+                recurring: recurring ? {
+                    type: recurring.type,
+                    interval: recurring.interval,
+                    nextDue: recurring.nextDue || this.calculateNextDueDate(recurring.type),
+                    completedDates: [],
+                    totalCompletions: 0,
+                    isActive: true
+                } : null
             };
 
             this.state.currentProfile.bucketList.push(goal);
             this.saveProfiles();
             return goal;
+        },
+
+        // 다음 반복 날짜 계산
+        calculateNextDueDate(recurringType) {
+            const now = new Date();
+            const config = CONFIG.RECURRING_TYPES[recurringType];
+            if (!config) return null;
+
+            const nextDate = new Date(now);
+            switch (recurringType) {
+                case 'daily':
+                    nextDate.setDate(nextDate.getDate() + 1);
+                    break;
+                case 'weekly':
+                    nextDate.setDate(nextDate.getDate() + 7);
+                    break;
+                case 'monthly':
+                    nextDate.setMonth(nextDate.getMonth() + 1);
+                    break;
+                case 'yearly':
+                    nextDate.setFullYear(nextDate.getFullYear() + 1);
+                    break;
+            }
+            return nextDate.toISOString();
+        },
+
+        // 반복 목표 완료 처리
+        completeRecurringGoal(goalId) {
+            const goal = this.state.currentProfile?.bucketList.find(g => g.id === goalId);
+            if (!goal || !goal.recurring) return null;
+
+            const today = new Date().toISOString().split('T')[0];
+            
+            // 이미 오늘 완료했는지 확인
+            if (goal.recurring.completedDates.includes(today)) {
+                return null; // 이미 완료됨
+            }
+
+            // 완료 정보 업데이트
+            goal.recurring.completedDates.push(today);
+            goal.recurring.totalCompletions = (goal.recurring.totalCompletions || 0) + 1;
+            goal.recurring.nextDue = this.calculateNextDueDate(goal.recurring.type);
+            
+            // 목표는 완료하지 않고 계속 활성 상태 유지
+            goal.completed = false;
+            
+            this.saveProfiles();
+            return goal;
+        },
+
+        // 반복 목표 비활성화
+        deactivateRecurringGoal(goalId) {
+            const goal = this.state.currentProfile?.bucketList.find(g => g.id === goalId);
+            if (!goal || !goal.recurring) return null;
+
+            goal.recurring.isActive = false;
+            goal.completed = true;
+            goal.completedAt = new Date().toISOString();
+            
+            this.saveProfiles();
+            return goal;
+        },
+
+        // 오늘 완료 가능한 반복 목표 확인
+        canCompleteToday(goalId) {
+            const goal = this.state.currentProfile?.bucketList.find(g => g.id === goalId);
+            if (!goal || !goal.recurring) return false;
+
+            const today = new Date().toISOString().split('T')[0];
+            return !goal.recurring.completedDates.includes(today);
         },
 
         updateGoal(goalId, updates) {
@@ -913,37 +997,156 @@
             return doc;
         },
 
-        // 달성 카드 생성
+        // 달성 카드 생성 (Canvas API 사용)
         async generateAchievementCard(goal, profileName) {
-            if (typeof html2canvas === 'undefined') {
-                throw new Error('html2canvas 라이브러리가 로드되지 않았습니다.');
-            }
+            return new Promise((resolve) => {
+                const canvas = document.createElement('canvas');
+                canvas.width = 800;
+                canvas.height = 600;
+                const ctx = canvas.getContext('2d');
 
-            // 카드 HTML 생성
-            const cardHtml = `
-                <div class="achievement-card-export" style="width: 600px; padding: 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-family: Arial, sans-serif;">
-                    <h2 style="font-size: 28px; margin-bottom: 20px;">🎉 목표 달성!</h2>
-                    <p style="font-size: 20px; margin-bottom: 10px;">${Utils.escapeHtml(goal.text)}</p>
-                    <p style="font-size: 16px; opacity: 0.9;">달성일: ${Utils.formatDate(goal.completedAt)}</p>
-                    ${goal.completionNote ? `<p style="font-size: 14px; margin-top: 20px; font-style: italic;">"${Utils.escapeHtml(goal.completionNote)}"</p>` : ''}
-                    <p style="font-size: 14px; margin-top: 30px; opacity: 0.8;">- ${Utils.escapeHtml(profileName)} -</p>
-                </div>
-            `;
+                // 배경 그라데이션 (Apple 스타일)
+                const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+                gradient.addColorStop(0, '#007AFF');
+                gradient.addColorStop(1, '#5856D6');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // 임시 컨테이너 생성
-            const container = document.createElement('div');
-            container.innerHTML = cardHtml;
-            container.style.position = 'absolute';
-            container.style.left = '-9999px';
-            document.body.appendChild(container);
+                // 배경 패턴 (선택사항)
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+                for (let i = 0; i < 20; i++) {
+                    ctx.beginPath();
+                    ctx.arc(
+                        Math.random() * canvas.width,
+                        Math.random() * canvas.height,
+                        Math.random() * 40 + 10,
+                        0,
+                        2 * Math.PI
+                    );
+                    ctx.fill();
+                }
 
-            try {
-                const canvas = await html2canvas(container.firstElementChild);
-                const dataUrl = canvas.toDataURL('image/png');
-                return dataUrl;
-            } finally {
-                document.body.removeChild(container);
-            }
+                // 텍스트 설정
+                ctx.textAlign = 'center';
+                ctx.fillStyle = 'white';
+
+                // 제목
+                ctx.font = 'bold 48px -apple-system, BlinkMacSystemFont, sans-serif';
+                ctx.fillText('🎉 목표 달성!', canvas.width / 2, 120);
+
+                // 목표 텍스트
+                ctx.font = '32px -apple-system, BlinkMacSystemFont, sans-serif';
+                const goalText = goal.text;
+                if (goalText.length > 30) {
+                    const words = goalText.split(' ');
+                    const lines = [];
+                    let currentLine = '';
+                    
+                    words.forEach(word => {
+                        if ((currentLine + word).length < 30) {
+                            currentLine += word + ' ';
+                        } else {
+                            lines.push(currentLine.trim());
+                            currentLine = word + ' ';
+                        }
+                    });
+                    lines.push(currentLine.trim());
+                    
+                    lines.forEach((line, index) => {
+                        ctx.fillText(line, canvas.width / 2, 200 + (index * 40));
+                    });
+                } else {
+                    ctx.fillText(goalText, canvas.width / 2, 200);
+                }
+
+                // 달성일
+                ctx.font = '24px -apple-system, BlinkMacSystemFont, sans-serif';
+                ctx.fillText(`달성일: ${Utils.formatDate(goal.completedAt)}`, canvas.width / 2, 320);
+
+                // 완료 메모
+                if (goal.completionNote) {
+                    ctx.font = 'italic 20px -apple-system, BlinkMacSystemFont, sans-serif';
+                    ctx.fillText(`"${goal.completionNote}"`, canvas.width / 2, 380);
+                }
+
+                // 카테고리 배지
+                const category = CONFIG.CATEGORIES[goal.category];
+                if (category) {
+                    ctx.font = '24px -apple-system, BlinkMacSystemFont, sans-serif';
+                    ctx.fillText(`${category.icon} ${category.name}`, canvas.width / 2, 450);
+                }
+
+                // 사용자 이름
+                ctx.font = '18px -apple-system, BlinkMacSystemFont, sans-serif';
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.fillText(`- ${profileName} -`, canvas.width / 2, 520);
+
+                // 하단 브랜딩
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+                ctx.font = '16px -apple-system, BlinkMacSystemFont, sans-serif';
+                ctx.fillText('Made with 🤍 by 버킷드림', canvas.width / 2, 570);
+
+                resolve(canvas.toDataURL('image/png', 0.9));
+            });
+        },
+
+        // 통계 카드 생성
+        async generateStatsCard(profileName, stats) {
+            return new Promise((resolve) => {
+                const canvas = document.createElement('canvas');
+                canvas.width = 800;
+                canvas.height = 600;
+                const ctx = canvas.getContext('2d');
+
+                // 배경 그라데이션
+                const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+                gradient.addColorStop(0, '#34C759');
+                gradient.addColorStop(1, '#30D158');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // 제목
+                ctx.textAlign = 'center';
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 42px -apple-system, BlinkMacSystemFont, sans-serif';
+                ctx.fillText('📊 나의 버킷리스트', canvas.width / 2, 80);
+
+                // 통계 정보
+                ctx.font = '32px -apple-system, BlinkMacSystemFont, sans-serif';
+                ctx.fillText(`총 ${stats.total}개의 목표`, canvas.width / 2, 160);
+                ctx.fillText(`${stats.completed}개 완료`, canvas.width / 2, 220);
+                ctx.fillText(`${stats.percentage}% 달성률`, canvas.width / 2, 280);
+
+                // 진행률 바
+                const barWidth = 500;
+                const barHeight = 20;
+                const barX = (canvas.width - barWidth) / 2;
+                const barY = 320;
+
+                // 배경 바
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.fillRect(barX, barY, barWidth, barHeight);
+
+                // 진행률 바
+                ctx.fillStyle = 'white';
+                ctx.fillRect(barX, barY, (barWidth * stats.percentage) / 100, barHeight);
+
+                // 카테고리별 통계
+                ctx.font = '20px -apple-system, BlinkMacSystemFont, sans-serif';
+                ctx.fillText('카테고리별 현황', canvas.width / 2, 400);
+
+                // 사용자 이름
+                ctx.font = '18px -apple-system, BlinkMacSystemFont, sans-serif';
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.fillText(`- ${profileName} -`, canvas.width / 2, 520);
+
+                // 하단 브랜딩
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+                ctx.font = '16px -apple-system, BlinkMacSystemFont, sans-serif';
+                ctx.fillText('Made with 🤍 by 버킷드림', canvas.width / 2, 570);
+
+                resolve(canvas.toDataURL('image/png', 0.9));
+            });
         }
     };
 
@@ -1298,6 +1501,584 @@
                 }, 500);
             }
         },
+        
+        // 인라인 완료 처리
+        handleInlineComplete(goalId) {
+            if (confirm('이 목표를 완료하셨나요? 🎉')) {
+                this.handleGoalComplete(goalId);
+            }
+        },
+        
+        // 목표일 설정 모달
+        handleScheduleModal(goalId) {
+            const modal = document.createElement('div');
+            modal.className = 'modal schedule-modal';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <h3>목표 달성 예정일 설정</h3>
+                    
+                    <div class="date-input-group">
+                        <label for="targetDate">목표 달성 예정일</label>
+                        <input type="date" id="targetDate" min="${new Date().toISOString().split('T')[0]}">
+                    </div>
+                    
+                    <div class="date-input-group">
+                        <label for="milestoneDate">중간 점검일 (선택)</label>
+                        <input type="date" id="milestoneDate">
+                    </div>
+                    
+                    <div class="reminder-options">
+                        <h4>알림 설정</h4>
+                        <div class="reminder-checkbox">
+                            <input type="checkbox" id="reminder7days">
+                            <label for="reminder7days">7일 전 알림</label>
+                        </div>
+                        <div class="reminder-checkbox">
+                            <input type="checkbox" id="reminder1day">
+                            <label for="reminder1day">1일 전 알림</label>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-buttons">
+                        <button class="btn-primary" onclick="Controller.saveSchedule('${goalId}')">저장</button>
+                        <button class="btn-secondary" onclick="Controller.closeModal()">취소</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            modal.style.display = 'flex';
+        },
+        
+        // 일정 저장
+        saveSchedule(goalId) {
+            const targetDate = document.getElementById('targetDate').value;
+            const milestoneDate = document.getElementById('milestoneDate').value;
+            const reminder7days = document.getElementById('reminder7days').checked;
+            const reminder1day = document.getElementById('reminder1day').checked;
+            
+            if (!targetDate) {
+                View.showNotification('목표 달성 예정일을 설정해주세요.', 'warning');
+                return;
+            }
+            
+            // 목표 업데이트
+            const goal = DataModel.state.currentProfile?.bucketList.find(g => g.id === goalId);
+            if (goal) {
+                goal.targetDate = targetDate;
+                goal.milestoneDate = milestoneDate;
+                goal.reminders = {
+                    reminder7days,
+                    reminder1day
+                };
+                
+                DataModel.saveProfiles();
+                this.render();
+                this.closeModal();
+                View.showNotification('목표일이 설정되었습니다!', 'success');
+            }
+        },
+        
+        // 더보기 메뉴 표시
+        handleMoreMenu(goalId, button) {
+            // 기존 메뉴 제거
+            const existingMenu = document.querySelector('.context-menu');
+            if (existingMenu) {
+                existingMenu.remove();
+            }
+            
+            const menu = document.createElement('div');
+            menu.className = 'context-menu';
+            menu.innerHTML = `
+                <button onclick="Controller.handleGoalEdit('${goalId}')">
+                    ✏️ 세부사항 편집
+                </button>
+                <button onclick="Controller.duplicateGoal('${goalId}')">
+                    📋 복제하기
+                </button>
+                <hr>
+                <button class="danger" onclick="Controller.confirmGoalDelete('${goalId}')">
+                    🗑️ 삭제하기
+                </button>
+            `;
+            
+            document.body.appendChild(menu);
+            this.positionContextMenu(menu, button);
+            
+            // 외부 클릭 시 메뉴 닫기
+            setTimeout(() => {
+                document.addEventListener('click', (e) => {
+                    if (!menu.contains(e.target) && e.target !== button) {
+                        menu.remove();
+                    }
+                }, { once: true });
+            }, 100);
+        },
+        
+        // 컨텍스트 메뉴 위치 조정
+        positionContextMenu(menu, button) {
+            const rect = button.getBoundingClientRect();
+            const menuHeight = menu.offsetHeight;
+            const menuWidth = menu.offsetWidth;
+            
+            let top = rect.bottom + 8;
+            let left = rect.left;
+            
+            if (top + menuHeight > window.innerHeight) {
+                top = rect.top - menuHeight - 8;
+            }
+            
+            if (left + menuWidth > window.innerWidth) {
+                left = rect.right - menuWidth;
+            }
+            
+            menu.style.position = 'fixed';
+            menu.style.top = `${top}px`;
+            menu.style.left = `${left}px`;
+        },
+        
+        // 목표 복제
+        duplicateGoal(goalId) {
+            const goal = DataModel.state.currentProfile?.bucketList.find(g => g.id === goalId);
+            if (goal) {
+                const duplicatedGoal = {
+                    ...goal,
+                    id: Utils.generateId(),
+                    text: goal.text + ' (복사본)',
+                    completed: false,
+                    createdAt: new Date().toISOString(),
+                    completedAt: null,
+                    completionNote: null,
+                    completionEmotion: null,
+                    completionImage: null,
+                    emotionalJourney: [],
+                    taskProgress: 0
+                };
+                
+                DataModel.state.currentProfile.bucketList.push(duplicatedGoal);
+                DataModel.saveProfiles();
+                this.render();
+                View.showNotification('목표가 복제되었습니다!', 'success');
+            }
+        },
+        
+        // 삭제 확인
+        confirmGoalDelete(goalId) {
+            if (confirm('정말로 이 목표를 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.')) {
+                this.handleGoalDelete(goalId);
+            }
+        },
+        
+        // 카테고리 변경
+        handleCategoryChange(goalId, newCategory) {
+            const goal = DataModel.state.currentProfile?.bucketList.find(g => g.id === goalId);
+            if (goal) {
+                goal.category = newCategory;
+                DataModel.saveProfiles();
+                this.render();
+                View.showNotification('카테고리가 변경되었습니다.', 'success');
+            }
+        },
+        
+        // 모달 닫기
+        closeModal() {
+            const modal = document.querySelector('.modal');
+            if (modal) {
+                modal.remove();
+            }
+        },
+        
+        // 우선순위 드래그 앤 드롭 초기화
+        initPriorityDragDrop() {
+            let draggedElement = null;
+            
+            document.addEventListener('dragstart', (e) => {
+                if (e.target.classList.contains('goal-card')) {
+                    draggedElement = e.target;
+                    e.target.classList.add('dragging');
+                    e.dataTransfer.effectAllowed = 'move';
+                    
+                    // 드래그 이미지 커스터마이징
+                    const dragImage = e.target.cloneNode(true);
+                    dragImage.style.transform = 'rotate(2deg)';
+                    dragImage.style.opacity = '0.8';
+                    document.body.appendChild(dragImage);
+                    e.dataTransfer.setDragImage(dragImage, e.offsetX, e.offsetY);
+                    setTimeout(() => dragImage.remove(), 0);
+                }
+            });
+            
+            document.addEventListener('dragend', (e) => {
+                if (e.target.classList.contains('goal-card')) {
+                    e.target.classList.remove('dragging');
+                    this.updatePriorities();
+                    this.saveGoalOrder();
+                }
+            });
+            
+            document.addEventListener('dragover', (e) => {
+                if (draggedElement) {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                    
+                    const afterElement = this.getDragAfterElement(
+                        document.querySelector('.goals-grid'), 
+                        e.clientY
+                    );
+                    
+                    if (afterElement == null) {
+                        document.querySelector('.goals-grid').appendChild(draggedElement);
+                    } else {
+                        document.querySelector('.goals-grid').insertBefore(draggedElement, afterElement);
+                    }
+                }
+            });
+            
+            document.addEventListener('drop', (e) => {
+                if (draggedElement) {
+                    e.preventDefault();
+                }
+            });
+        },
+        
+        // 드래그 후 요소 위치 계산
+        getDragAfterElement(container, y) {
+            const draggableElements = [...container.querySelectorAll('.goal-card:not(.dragging)')];
+            
+            return draggableElements.reduce((closest, child) => {
+                const box = child.getBoundingClientRect();
+                const offset = y - box.top - box.height / 2;
+                
+                if (offset < 0 && offset > closest.offset) {
+                    return { offset: offset, element: child };
+                } else {
+                    return closest;
+                }
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+        },
+        
+        // 우선순위 업데이트
+        updatePriorities() {
+            const goalCards = document.querySelectorAll('.goal-card');
+            goalCards.forEach((card, index) => {
+                const goalId = card.dataset.id;
+                const priorityNumber = card.querySelector('.priority-number');
+                const newPriority = index + 1;
+                
+                if (priorityNumber) {
+                    priorityNumber.textContent = newPriority;
+                }
+                
+                // 데이터 모델 업데이트
+                const goal = DataModel.state.currentProfile?.bucketList.find(g => g.id === goalId);
+                if (goal) {
+                    goal.priority = newPriority;
+                }
+            });
+        },
+        
+        // 목표 순서 저장
+        saveGoalOrder() {
+            DataModel.saveProfiles();
+            View.showNotification('우선순위가 변경되었습니다', 'success');
+        },
+        
+        // 진행률 위젯 렌더링
+        renderProgressWidget(goal) {
+            const progress = this.calculateProgress(goal);
+            
+            if (!progress.hasTasks && !progress.hasTargetDate) {
+                return '';
+            }
+            
+            return `
+                <div class="goal-progress-widget">
+                    <div class="mini-progress-bar">
+                        <div class="progress-fill" style="width: ${progress.overall}%"></div>
+                        ${this.renderMilestones(goal)}
+                    </div>
+                    <div class="progress-details">
+                        <span class="progress-text">${progress.overall}% 완료</span>
+                        ${progress.daysLeft !== null ? `
+                            <span class="days-left ${this.getDaysLeftClass(progress.daysLeft)}">
+                                ${progress.daysLeft > 0 ? `D-${progress.daysLeft}` : progress.daysLeft === 0 ? 'D-Day' : `D+${Math.abs(progress.daysLeft)}`}
+                            </span>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        },
+        
+        // 진행률 계산
+        calculateProgress(goal) {
+            const tasks = goal.tasks || [];
+            const completedTasks = tasks.filter(t => t.completed).length;
+            const totalTasks = tasks.length;
+            
+            // 태스크 기반 진행률
+            const taskProgress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+            
+            // 시간 기반 진행률 (목표일이 설정된 경우)
+            let timeProgress = 0;
+            if (goal.targetDate) {
+                const start = new Date(goal.createdAt);
+                const end = new Date(goal.targetDate);
+                const now = new Date();
+                
+                const totalTime = end - start;
+                const elapsedTime = now - start;
+                
+                timeProgress = Math.min((elapsedTime / totalTime) * 100, 100);
+            }
+            
+            // 종합 진행률 (태스크와 시간의 가중평균)
+            const overallProgress = goal.targetDate 
+                ? (taskProgress * 0.7 + timeProgress * 0.3)
+                : taskProgress;
+            
+            return {
+                overall: Math.round(overallProgress),
+                tasks: Math.round(taskProgress),
+                time: Math.round(timeProgress),
+                daysLeft: this.calculateDaysLeft(goal.targetDate),
+                hasTasks: totalTasks > 0,
+                hasTargetDate: !!goal.targetDate
+            };
+        },
+        
+        // 남은 일수 계산
+        calculateDaysLeft(targetDate) {
+            if (!targetDate) return null;
+            
+            const now = new Date();
+            const target = new Date(targetDate);
+            const diffTime = target - now;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            return diffDays;
+        },
+        
+        // 마일스톤 렌더링
+        renderMilestones(goal) {
+            const tasks = goal.tasks || [];
+            if (tasks.length === 0) return '';
+            
+            const milestones = [];
+            const quarterPoints = [25, 50, 75];
+            
+            quarterPoints.forEach(point => {
+                const completedCount = tasks.filter(t => t.completed).length;
+                const totalCount = tasks.length;
+                const currentProgress = (completedCount / totalCount) * 100;
+                
+                milestones.push(`
+                    <span class="milestone ${currentProgress >= point ? 'completed' : ''}" 
+                          style="left: ${point}%"></span>
+                `);
+            });
+            
+            return `
+                <div class="progress-milestones">
+                    ${milestones.join('')}
+                </div>
+            `;
+        },
+        
+        // 남은 일수 클래스 결정
+        getDaysLeftClass(days) {
+            if (days === null) return '';
+            if (days < 0) return 'overdue';
+            if (days <= 7) return 'warning';
+            if (days <= 30) return 'caution';
+            return 'plenty';
+        },
+        
+        // 빠른 메모 위젯 렌더링
+        renderQuickNoteWidget(goal) {
+            const notes = goal.quickNotes || [];
+            const noteCount = notes.length;
+            
+            return `
+                <div class="quick-note-widget">
+                    <button class="quick-note-trigger" data-goal-id="${goal.id}">
+                        <span class="note-icon">📝</span>
+                        ${noteCount > 0 ? `<span class="note-count">${noteCount}</span>` : ''}
+                    </button>
+                    
+                    <div class="quick-note-panel" data-goal-id="${goal.id}">
+                        <div class="note-input-wrapper">
+                            <textarea 
+                                class="quick-note-input" 
+                                placeholder="빠른 메모 추가..."
+                                rows="3"
+                                data-goal-id="${goal.id}"
+                            ></textarea>
+                            <div class="note-actions">
+                                <button class="btn-add-note" data-goal-id="${goal.id}">추가</button>
+                                <button class="btn-voice-note" data-goal-id="${goal.id}">🎤</button>
+                                <button class="btn-photo-note" data-goal-id="${goal.id}">📷</button>
+                            </div>
+                        </div>
+                        
+                        <div class="recent-notes">
+                            ${notes.slice(0, 5).map(note => `
+                                <div class="note-item" data-note-id="${note.id}">
+                                    <span class="note-date">${this.formatNoteDate(note.createdAt)}</span>
+                                    <span class="note-text">${Utils.escapeHtml(note.text)}</span>
+                                    <button class="btn-delete-note" data-goal-id="${goal.id}" data-note-id="${note.id}">×</button>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        },
+        
+        // 메모 날짜 포맷팅
+        formatNoteDate(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffTime = now - date;
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays === 0) return '오늘';
+            if (diffDays === 1) return '어제';
+            if (diffDays < 7) return `${diffDays}일 전`;
+            if (diffDays < 30) return `${Math.floor(diffDays / 7)}주 전`;
+            return `${Math.floor(diffDays / 30)}개월 전`;
+        },
+        
+        // 빠른 메모 패널 토글
+        toggleQuickNotePanel(goalId) {
+            const panel = document.querySelector(`.quick-note-panel[data-goal-id="${goalId}"]`);
+            if (panel) {
+                panel.classList.toggle('active');
+                
+                // 다른 패널들 닫기
+                document.querySelectorAll('.quick-note-panel').forEach(p => {
+                    if (p !== panel) {
+                        p.classList.remove('active');
+                    }
+                });
+            }
+        },
+        
+        // 빠른 메모 추가
+        handleAddQuickNote(goalId) {
+            const input = document.querySelector(`.quick-note-input[data-goal-id="${goalId}"]`);
+            const text = input.value.trim();
+            
+            if (!text) {
+                View.showNotification('메모 내용을 입력해주세요.', 'warning');
+                return;
+            }
+            
+            this.addQuickNote(goalId, text);
+            input.value = '';
+        },
+        
+        // 메모 추가 로직
+        addQuickNote(goalId, text, type = 'text', data = null) {
+            const goal = DataModel.state.currentProfile?.bucketList.find(g => g.id === goalId);
+            if (!goal) return;
+            
+            if (!goal.quickNotes) {
+                goal.quickNotes = [];
+            }
+            
+            const note = {
+                id: Utils.generateId(),
+                text: text,
+                type: type,
+                data: data,
+                createdAt: new Date().toISOString()
+            };
+            
+            goal.quickNotes.unshift(note);
+            DataModel.saveProfiles();
+            this.render();
+            
+            View.showNotification('메모가 추가되었습니다.', 'success');
+        },
+        
+        // 음성 메모
+        handleVoiceNote(goalId) {
+            if (!('webkitSpeechRecognition' in window)) {
+                View.showNotification('음성 인식이 지원되지 않는 브라우저입니다.', 'error');
+                return;
+            }
+            
+            const recognition = new webkitSpeechRecognition();
+            recognition.lang = 'ko-KR';
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            
+            const voiceBtn = document.querySelector(`.btn-voice-note[data-goal-id="${goalId}"]`);
+            voiceBtn.classList.add('recording');
+            voiceBtn.textContent = '🔴';
+            
+            recognition.start();
+            
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                const input = document.querySelector(`.quick-note-input[data-goal-id="${goalId}"]`);
+                input.value = transcript;
+                voiceBtn.classList.remove('recording');
+                voiceBtn.textContent = '🎤';
+                
+                // 자동으로 메모 추가
+                this.addQuickNote(goalId, transcript, 'voice');
+            };
+            
+            recognition.onerror = () => {
+                voiceBtn.classList.remove('recording');
+                voiceBtn.textContent = '🎤';
+                View.showNotification('음성 인식에 실패했습니다.', 'error');
+            };
+        },
+        
+        // 사진 메모
+        handlePhotoNote(goalId) {
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = 'image/*';
+            fileInput.capture = 'environment';
+            
+            fileInput.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                try {
+                    const dataUrl = await this.fileToDataUrl(file);
+                    this.addQuickNote(goalId, '사진 메모', 'photo', dataUrl);
+                } catch (error) {
+                    View.showNotification('사진 업로드에 실패했습니다.', 'error');
+                }
+            });
+            
+            fileInput.click();
+        },
+        
+        // 파일을 DataURL로 변환
+        fileToDataUrl(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = e => resolve(e.target.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        },
+        
+        // 빠른 메모 삭제
+        handleDeleteQuickNote(goalId, noteId) {
+            const goal = DataModel.state.currentProfile?.bucketList.find(g => g.id === goalId);
+            if (goal && goal.quickNotes) {
+                goal.quickNotes = goal.quickNotes.filter(n => n.id !== noteId);
+                DataModel.saveProfiles();
+                this.render();
+                View.showNotification('메모가 삭제되었습니다.', 'info');
+            }
+        },
 
         // 목표 요소 생성
         createGoalElement(goal) {
@@ -1306,6 +2087,7 @@
             const hasImage = goal.completionImage;
             const hasTasks = goal.tasks && goal.tasks.length > 0;
             const hasEmotionalJourney = goal.emotionalJourney && goal.emotionalJourney.length > 0;
+            const isRecurring = goal.recurring && goal.recurring.isActive;
             
             // 태스크 정보 가져오기
             const tasks = goal.tasks || [];
@@ -1317,24 +2099,60 @@
             const initialEmotion = goal.emotionalJourney && goal.emotionalJourney.length > 0 
                 ? goal.emotionalJourney[0].emotion 
                 : null;
+            
+            // 반복 목표 정보 가져오기
+            let recurringInfo = '';
+            if (isRecurring) {
+                const recurringType = CONFIG.RECURRING_TYPES[goal.recurring.type];
+                const nextDue = goal.recurring.nextDue ? new Date(goal.recurring.nextDue) : null;
+                const totalCompletions = goal.recurring.totalCompletions || 0;
+                const isOverdue = nextDue && nextDue < new Date();
+                
+                recurringInfo = `
+                    <div class="recurring-info">
+                        <span class="recurring-badge ${isOverdue ? 'overdue' : ''}">
+                            ${recurringType.icon} ${recurringType.name}
+                        </span>
+                        <span class="recurring-stats">
+                            완료 ${totalCompletions}회
+                            ${nextDue ? `· 다음: ${Utils.formatDate(nextDue)}` : ''}
+                        </span>
+                    </div>
+                `;
+            }
 
             return `
                 <article class="goal-card ${isCompleted ? 'completed' : ''} ${this.newGoalId === goal.id ? 'new' : ''}" 
                          data-id="${goal.id}" 
-                         data-category="${goal.category}">
+                         data-category="${goal.category}"
+                         ${isRecurring ? 'data-recurring="true"' : ''}
+                         draggable="true">
+                    <div class="drag-handle">
+                        <span class="priority-number">${goal.priority || 1}</span>
+                        <span class="drag-icon">⋮⋮</span>
+                    </div>
                     <div class="category-bar ${goal.category}"></div>
                     
                     <div class="goal-header">
-                        <div>
-                            <h3 class="goal-title">${Utils.escapeHtml(goal.text)}</h3>
-                            <div class="goal-metadata">
-                                <span class="goal-category-badge">${categoryInfo.icon} ${categoryInfo.name}</span>
-                                ${initialEmotion ? `
-                                    <span class="goal-emotion" title="초기 감정">
-                                        ${CONFIG.EMOTIONS[initialEmotion]?.emoji || '😊'}
-                                    </span>
-                                ` : ''}
-                            </div>
+                        <div class="goal-main-info">
+                            <h3 class="goal-text">${Utils.escapeHtml(goal.text)}</h3>
+                            <select class="category-selector" data-goal-id="${goal.id}">
+                                ${Object.entries(CONFIG.CATEGORIES).map(([key, cat]) => `
+                                    <option value="${key}" ${goal.category === key ? 'selected' : ''}>
+                                        ${cat.icon} ${cat.name}
+                                    </option>
+                                `).join('')}
+                            </select>
+                            ${recurringInfo}
+                        </div>
+                        <div class="goal-status">
+                            ${!isCompleted ? `
+                                <button class="btn-complete-inline" data-goal-id="${goal.id}">
+                                    ${isRecurring ? '✅ 오늘 완료' : '✅ 완료'}
+                                </button>
+                            ` : `
+                                <span class="completion-badge">🎉 완료됨</span>
+                            `}
                         </div>
                     </div>
                     
@@ -1413,31 +2231,21 @@
                         ` : ''}
                     ` : ''}
                     
+                    ${this.renderProgressWidget(goal)}
+                    
                     <div class="goal-actions">
-                        ${!isCompleted ? `
-                            <button class="action-btn" data-goal-id="${goal.id}" onclick="Controller.handleGoalEdit('${goal.id}')">
-                                📝 편집
-                            </button>
-                            <button class="action-btn" data-goal-id="${goal.id}" onclick="Controller.handleSchedule('${goal.id}')">
-                                🗓️ 일정
-                            </button>
-                            <button class="action-btn complete btn-complete" data-goal-id="${goal.id}">
-                                ✅ 완료
-                            </button>
-                        ` : `
-                            ${hasImage ? `
-                                <button class="action-btn btn-view-image" data-goal-id="${goal.id}">
-                                    📷 사진
-                                </button>
-                            ` : ''}
-                            <button class="action-btn btn-share" data-goal-id="${goal.id}">
-                                🔗 공유
-                            </button>
-                            <button class="action-btn" data-goal-id="${goal.id}" onclick="Controller.handleGoalReopen('${goal.id}')">
-                                🔄 다시 열기
-                            </button>
-                        `}
+                        <button class="btn-schedule" data-goal-id="${goal.id}" title="목표 달성 예정일 설정">
+                            📅 목표일 설정
+                        </button>
+                        <button class="btn-tasks" data-goal-id="${goal.id}" title="세부 계획 관리">
+                            📋 세부 계획
+                        </button>
+                        <button class="btn-more" data-goal-id="${goal.id}" title="추가 옵션">
+                            ⋮ 더보기
+                        </button>
                     </div>
+                    
+                    ${this.renderQuickNoteWidget(goal)}
                     
                     ${isCompleted && goal.completionNote ? `
                         <div class="goal-completion-banner" style="margin-top: 16px; padding: 12px; background: #f0f9ff; border-radius: 8px;">
@@ -1749,6 +2557,9 @@
             // 태스크 드래그 앤 드롭
             this.bindTaskDragEvents();
             
+            // 우선순위 드래그 앤 드롭
+            this.initPriorityDragDrop();
+            
             // 온라인/오프라인 이벤트
             window.addEventListener('online', () => View.showNotification('온라인 상태로 전환되었습니다.', 'success'));
             window.addEventListener('offline', () => View.showNotification('오프라인 상태입니다. 일부 기능이 제한될 수 있습니다.', 'warning'));
@@ -1852,6 +2663,64 @@
                 const taskId = target.dataset.taskId;
                 const noteId = target.dataset.noteId;
                 this.handleNoteDelete(goalId, taskId, noteId);
+            }
+            
+            // 인라인 완료 버튼
+            if (target.classList.contains('btn-complete-inline')) {
+                const goalId = target.dataset.goalId;
+                this.handleInlineComplete(goalId);
+            }
+            
+            // 목표일 설정 버튼
+            if (target.classList.contains('btn-schedule')) {
+                const goalId = target.dataset.goalId;
+                this.handleScheduleModal(goalId);
+            }
+            
+            // 세부 계획 버튼
+            if (target.classList.contains('btn-tasks')) {
+                const goalId = target.dataset.goalId;
+                this.handleTaskManager(goalId);
+            }
+            
+            // 더보기 버튼
+            if (target.classList.contains('btn-more')) {
+                const goalId = target.dataset.goalId;
+                this.handleMoreMenu(goalId, target);
+            }
+            
+            // 카테고리 선택기 변경
+            if (target.classList.contains('category-selector')) {
+                const goalId = target.dataset.goalId;
+                const newCategory = target.value;
+                this.handleCategoryChange(goalId, newCategory);
+            }
+            
+            // 빠른 메모 관련 이벤트
+            if (target.classList.contains('quick-note-trigger')) {
+                const goalId = target.dataset.goalId;
+                this.toggleQuickNotePanel(goalId);
+            }
+            
+            if (target.classList.contains('btn-add-note')) {
+                const goalId = target.dataset.goalId;
+                this.handleAddQuickNote(goalId);
+            }
+            
+            if (target.classList.contains('btn-voice-note')) {
+                const goalId = target.dataset.goalId;
+                this.handleVoiceNote(goalId);
+            }
+            
+            if (target.classList.contains('btn-photo-note')) {
+                const goalId = target.dataset.goalId;
+                this.handlePhotoNote(goalId);
+            }
+            
+            if (target.classList.contains('btn-delete-note') && target.dataset.noteId) {
+                const goalId = target.dataset.goalId;
+                const noteId = target.dataset.noteId;
+                this.handleDeleteQuickNote(goalId, noteId);
             }
 
             if (target.closest('.btn-emotion')) {
@@ -2443,11 +3312,13 @@
         handleGoalAdd() {
             const input = View.elements.goalInput;
             const categorySelect = View.elements.categorySelect;
+            const recurringSelect = document.getElementById('recurringSelect');
             
-            if (!input || !categorySelect) return;
+            if (!input || !categorySelect || !recurringSelect) return;
 
             const text = input.value.trim();
             const category = categorySelect.value;
+            const recurringType = recurringSelect.value;
 
             if (!text) {
                 View.showNotification('목표를 입력해주세요.', 'warning');
@@ -2465,15 +3336,27 @@
                 return;
             }
 
-            const newGoal = DataModel.addGoal(text, category);
+            // 반복 설정 처리
+            let recurring = null;
+            if (recurringType && CONFIG.RECURRING_TYPES[recurringType]) {
+                recurring = {
+                    type: recurringType,
+                    interval: CONFIG.RECURRING_TYPES[recurringType].interval
+                };
+            }
+
+            const newGoal = DataModel.addGoal(text, category, recurring);
             input.value = '';
+            recurringSelect.value = '';
             
             // 새 목표 추가 애니메이션을 위한 플래그 설정
             this.newGoalId = newGoal.id;
             this.render();
             
             // 동기부여 메시지
-            const message = AIRecommendation.getMotivationalMessage({ category });
+            const message = recurring ? 
+                `${CONFIG.RECURRING_TYPES[recurringType].name} 반복 목표가 추가되었습니다! 꾸준히 실천해보세요.` :
+                AIRecommendation.getMotivationalMessage({ category });
             View.showNotification(message, 'success');
         },
 
@@ -2486,8 +3369,26 @@
 
         // 목표 완료
         handleGoalComplete(goalId) {
+            const goal = DataModel.state.currentProfile?.bucketList.find(g => g.id === goalId);
+            if (!goal) return;
+
+            // 반복 목표 처리
+            if (goal.recurring && goal.recurring.isActive) {
+                if (!DataModel.canCompleteToday(goalId)) {
+                    View.showNotification('오늘은 이미 완료한 목표입니다!', 'warning');
+                    return;
+                }
+                
+                // 반복 목표 완료 처리
+                DataModel.completeRecurringGoal(goalId);
+                const recurringType = CONFIG.RECURRING_TYPES[goal.recurring.type];
+                View.showNotification(`🎉 오늘의 ${recurringType.name} 목표를 완료했습니다!`, 'success');
+                this.render();
+                return;
+            }
+
+            // 일반 목표 완료 처리
             this.currentCompletingGoalId = goalId;
-            
             View.showModal('completionModal');
             
             // 오늘 날짜 설정
@@ -3074,12 +3975,120 @@
             });
         },
 
-        // 목표 공유
+        // 목표 공유 - 향상된 버전
         handleShareGoal(goalId) {
             const goal = DataModel.state.currentProfile?.bucketList.find(g => g.id === goalId);
             if (!goal) return;
 
-            const shareText = `✅ 버킷리스트 달성!\n\n"${goal.text}"\n\n${goal.completionNote || '목표를 달성했습니다!'}\n\n#버킷리스트 #목표달성`;
+            // 공유 옵션 모달 표시
+            this.showShareModal(goal);
+        },
+
+        // 공유 모달 표시
+        showShareModal(goal) {
+            const modal = document.createElement('div');
+            modal.className = 'share-modal';
+            modal.innerHTML = `
+                <div class="share-modal-content">
+                    <div class="share-modal-header">
+                        <h3>목표 공유하기</h3>
+                        <button class="close-btn">&times;</button>
+                    </div>
+                    <div class="share-modal-body">
+                        <div class="share-preview">
+                            <h4>"${Utils.escapeHtml(goal.text)}"</h4>
+                            <p>✅ 달성일: ${Utils.formatDate(goal.completedAt)}</p>
+                            ${goal.completionNote ? `<p class="completion-note">"${Utils.escapeHtml(goal.completionNote)}"</p>` : ''}
+                        </div>
+                        <div class="share-options">
+                            <button class="share-option" data-type="image" data-goal-id="${goal.id}">
+                                🖼️ 이미지 카드로 공유
+                            </button>
+                            <button class="share-option" data-type="text" data-goal-id="${goal.id}">
+                                📝 텍스트로 공유
+                            </button>
+                            <button class="share-option" data-type="social" data-goal-id="${goal.id}">
+                                📱 소셜 미디어 공유
+                            </button>
+                            <button class="share-option" data-type="link" data-goal-id="${goal.id}">
+                                🔗 링크 복사
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+
+            // 이벤트 리스너
+            modal.querySelector('.close-btn').onclick = () => {
+                document.body.removeChild(modal);
+            };
+
+            modal.onclick = (e) => {
+                if (e.target === modal) {
+                    document.body.removeChild(modal);
+                }
+            };
+
+            // 공유 옵션 클릭
+            modal.querySelectorAll('.share-option').forEach(btn => {
+                btn.onclick = () => {
+                    const type = btn.dataset.type;
+                    const goalId = btn.dataset.goalId;
+                    this.handleShareOption(type, goalId);
+                    document.body.removeChild(modal);
+                };
+            });
+        },
+
+        // 공유 옵션 처리
+        async handleShareOption(type, goalId) {
+            const goal = DataModel.state.currentProfile?.bucketList.find(g => g.id === goalId);
+            if (!goal) return;
+
+            const profileName = DataModel.state.currentProfile.name;
+
+            switch (type) {
+                case 'image':
+                    await this.shareAsImage(goal, profileName);
+                    break;
+                case 'text':
+                    this.shareAsText(goal);
+                    break;
+                case 'social':
+                    this.shareToSocial(goal);
+                    break;
+                case 'link':
+                    this.shareAsLink(goal);
+                    break;
+            }
+        },
+
+        // 이미지로 공유
+        async shareAsImage(goal, profileName) {
+            try {
+                View.showLoading('이미지 생성 중...');
+                const imageDataUrl = await PDFGenerator.generateAchievementCard(goal, profileName);
+                
+                // 이미지 다운로드
+                const link = document.createElement('a');
+                link.download = `achievement-${goal.id}.png`;
+                link.href = imageDataUrl;
+                link.click();
+                
+                View.hideLoading();
+                View.showNotification('이미지가 다운로드되었습니다!', 'success');
+            } catch (error) {
+                View.hideLoading();
+                View.showNotification('이미지 생성에 실패했습니다.', 'error');
+                console.error(error);
+            }
+        },
+
+        // 텍스트로 공유
+        shareAsText(goal) {
+            const shareText = `✅ 버킷리스트 달성!\n\n"${goal.text}"\n\n${goal.completionNote || '목표를 달성했습니다!'}\n\n달성일: ${Utils.formatDate(goal.completedAt)}\n\n#버킷리스트 #목표달성 #BucketDreams`;
             
             if (navigator.share) {
                 navigator.share({
@@ -3087,11 +4096,79 @@
                     text: shareText
                 }).catch(err => console.log('공유 취소됨'));
             } else {
-                // 클립보드 복사
                 navigator.clipboard.writeText(shareText)
                     .then(() => View.showNotification('클립보드에 복사되었습니다!', 'success'))
-                    .catch(() => View.showNotification('공유 기능을 사용할 수 없습니다.', 'error'));
+                    .catch(() => View.showNotification('복사에 실패했습니다.', 'error'));
             }
+        },
+
+        // 소셜 미디어 공유
+        shareToSocial(goal) {
+            const shareText = encodeURIComponent(`✅ 버킷리스트 달성! "${goal.text}" ${goal.completionNote || ''} #버킷리스트 #목표달성`);
+            const shareUrl = encodeURIComponent(window.location.href);
+            
+            const socialModal = document.createElement('div');
+            socialModal.className = 'social-share-modal';
+            socialModal.innerHTML = `
+                <div class="social-share-content">
+                    <div class="social-share-header">
+                        <h3>소셜 미디어 공유</h3>
+                        <button class="close-btn">&times;</button>
+                    </div>
+                    <div class="social-share-body">
+                        <div class="social-options">
+                            <a href="https://twitter.com/intent/tweet?text=${shareText}" target="_blank" class="social-btn twitter">
+                                🐦 Twitter
+                            </a>
+                            <a href="https://www.facebook.com/sharer/sharer.php?u=${shareUrl}&quote=${shareText}" target="_blank" class="social-btn facebook">
+                                📘 Facebook
+                            </a>
+                            <a href="https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}" target="_blank" class="social-btn linkedin">
+                                💼 LinkedIn
+                            </a>
+                            <a href="https://api.whatsapp.com/send?text=${shareText}" target="_blank" class="social-btn whatsapp">
+                                💬 WhatsApp
+                            </a>
+                            <button class="social-btn copy" data-text="${decodeURIComponent(shareText)}">
+                                📋 복사하기
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(socialModal);
+
+            // 이벤트 리스너
+            socialModal.querySelector('.close-btn').onclick = () => {
+                document.body.removeChild(socialModal);
+            };
+
+            socialModal.onclick = (e) => {
+                if (e.target === socialModal) {
+                    document.body.removeChild(socialModal);
+                }
+            };
+
+            // 복사 버튼
+            socialModal.querySelector('.copy').onclick = () => {
+                const text = socialModal.querySelector('.copy').dataset.text;
+                navigator.clipboard.writeText(text)
+                    .then(() => {
+                        View.showNotification('클립보드에 복사되었습니다!', 'success');
+                        document.body.removeChild(socialModal);
+                    })
+                    .catch(() => View.showNotification('복사에 실패했습니다.', 'error'));
+            };
+        },
+
+        // 링크로 공유
+        shareAsLink(goal) {
+            const shareUrl = `${window.location.origin}${window.location.pathname}?shared=${goal.id}`;
+            
+            navigator.clipboard.writeText(shareUrl)
+                .then(() => View.showNotification('링크가 클립보드에 복사되었습니다!', 'success'))
+                .catch(() => View.showNotification('링크 복사에 실패했습니다.', 'error'));
         },
 
         // 달성 카드 공유

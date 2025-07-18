@@ -6048,3 +6048,993 @@ body {
         padding: var(--spacing-s);
     }
 }
+
+/* 개선된 목표 카드 스타일 */
+.goal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--spacing-m);
+}
+
+.goal-main-info {
+    flex: 1;
+}
+
+.goal-text {
+    font: var(--title-3);
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-s);
+}
+
+/* 카테고리 선택기 */
+.category-selector {
+    padding: 6px 12px;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--spacing-s);
+    font: var(--caption-1);
+    background: var(--surface);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.category-selector:hover {
+    border-color: var(--gray-300);
+    background: var(--background);
+}
+
+.category-selector:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+}
+
+/* 인라인 완료 버튼 */
+.btn-complete-inline {
+    padding: var(--spacing-s) var(--spacing-m);
+    background: var(--primary-green);
+    color: white;
+    border: none;
+    border-radius: var(--spacing-s);
+    font: var(--caption-1);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-complete-inline:hover {
+    background: #2DB74C;
+    transform: translateY(-1px);
+}
+
+.completion-badge {
+    font: var(--caption-1);
+    color: var(--primary-green);
+    background: var(--surface);
+    padding: var(--spacing-s) var(--spacing-m);
+    border-radius: var(--spacing-s);
+    font-weight: 600;
+}
+
+/* 액션 버튼 그룹 */
+.goal-actions {
+    display: flex;
+    gap: var(--spacing-s);
+    margin-top: var(--spacing-m);
+}
+
+.goal-actions button {
+    flex: 1;
+    padding: var(--spacing-s) var(--spacing-m);
+    border: 1px solid var(--gray-200);
+    background: var(--background);
+    border-radius: var(--spacing-s);
+    font: var(--caption-1);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.goal-actions button:hover {
+    background: var(--surface);
+    border-color: var(--gray-300);
+}
+
+.btn-schedule:hover {
+    background: rgba(0, 122, 255, 0.05);
+    border-color: var(--primary-blue);
+}
+
+.btn-tasks:hover {
+    background: rgba(255, 149, 0, 0.05);
+    border-color: var(--primary-orange);
+}
+
+.btn-more:hover {
+    background: rgba(142, 142, 147, 0.05);
+    border-color: var(--gray-500);
+}
+
+/* 컨텍스트 메뉴 */
+.context-menu {
+    position: absolute;
+    background: var(--background);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--spacing-s);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    padding: var(--spacing-s);
+    min-width: 160px;
+    z-index: 1000;
+}
+
+.context-menu button {
+    width: 100%;
+    padding: var(--spacing-s) var(--spacing-m);
+    border: none;
+    background: none;
+    text-align: left;
+    font: var(--caption-1);
+    cursor: pointer;
+    border-radius: 6px;
+    transition: background 0.2s;
+}
+
+.context-menu button:hover {
+    background: var(--surface);
+}
+
+.context-menu button.danger {
+    color: var(--primary-red);
+}
+
+.context-menu button.danger:hover {
+    background: rgba(255, 59, 48, 0.05);
+}
+
+.context-menu hr {
+    margin: var(--spacing-s) 0;
+    border: none;
+    border-top: 1px solid var(--gray-200);
+}
+
+/* 목표일 설정 모달 */
+.schedule-modal {
+    max-width: 400px;
+}
+
+.date-input-group {
+    margin-bottom: var(--spacing-m);
+}
+
+.date-input-group label {
+    display: block;
+    font: var(--caption-1);
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-s);
+}
+
+.date-input-group input[type="date"] {
+    width: 100%;
+    padding: var(--spacing-s);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--spacing-s);
+    font: var(--body);
+}
+
+.reminder-options {
+    margin-top: var(--spacing-m);
+}
+
+.reminder-checkbox {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-s);
+    margin-bottom: var(--spacing-s);
+}
+
+.reminder-checkbox input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+}
+
+.reminder-checkbox label {
+    font: var(--caption-1);
+    color: var(--text-secondary);
+}
+
+/* 목표 상태 표시 */
+.goal-card.scheduled::before {
+    content: '📅';
+    position: absolute;
+    top: var(--spacing-m);
+    right: var(--spacing-m);
+    font-size: 20px;
+}
+
+.goal-card.deadline-soon {
+    border-color: var(--primary-orange);
+    background: rgba(255, 149, 0, 0.02);
+}
+
+.goal-card.completed {
+    opacity: 0.9;
+    background: rgba(52, 199, 89, 0.02);
+}
+
+/* 반응형 디자인 개선 */
+@media (max-width: 768px) {
+    .goal-header {
+        flex-direction: column;
+        gap: var(--spacing-s);
+    }
+    
+    .goal-status {
+        width: 100%;
+    }
+    
+    .btn-complete-inline {
+        width: 100%;
+    }
+    
+    .goal-actions {
+        flex-wrap: wrap;
+    }
+    
+    .goal-actions button {
+        min-width: calc(50% - 4px);
+    }
+}
+
+/* 드래그 앤 드롭 우선순위 조정 */
+.drag-handle {
+    position: absolute;
+    left: -40px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 60px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--spacing-s) 0 0 var(--spacing-s);
+    cursor: grab;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.goal-card:hover .drag-handle {
+    opacity: 1;
+}
+
+.drag-handle:active {
+    cursor: grabbing;
+}
+
+.priority-number {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+}
+
+.drag-icon {
+    font-size: 14px;
+    color: var(--gray-400);
+    letter-spacing: 2px;
+    transform: rotate(90deg);
+}
+
+/* 드래그 중 스타일 */
+.goal-card.dragging {
+    opacity: 0.5;
+    transform: rotate(2deg);
+    cursor: grabbing;
+    z-index: 1000;
+}
+
+.goal-card.drag-over {
+    border-top: 3px solid var(--primary-blue);
+    padding-top: 20px;
+}
+
+/* 드롭 존 표시 */
+.drop-indicator {
+    height: 60px;
+    margin: var(--spacing-s) 0;
+    border: 2px dashed var(--primary-blue);
+    border-radius: var(--spacing-s);
+    background: rgba(0, 122, 255, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-blue);
+    font-size: 14px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.drop-indicator.active {
+    opacity: 1;
+}
+
+/* 목표 진행률 위젯 */
+.goal-progress-widget {
+    margin-top: var(--spacing-m);
+    padding: var(--spacing-m);
+    background: var(--surface);
+    border-radius: var(--spacing-s);
+    border: 1px solid var(--gray-200);
+}
+
+.mini-progress-bar {
+    position: relative;
+    height: 8px;
+    background: var(--gray-200);
+    border-radius: 4px;
+    overflow: visible;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-blue) 0%, var(--primary-purple) 100%);
+    border-radius: 4px;
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+}
+
+/* 진행률 애니메이션 효과 */
+.progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 40px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    animation: shimmer 2s infinite;
+    border-radius: 4px;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-40px); }
+    100% { transform: translateX(40px); }
+}
+
+/* 마일스톤 마커 */
+.progress-milestones {
+    position: absolute;
+    top: -2px;
+    left: 0;
+    right: 0;
+    height: 12px;
+}
+
+.milestone {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: var(--background);
+    border: 2px solid var(--gray-300);
+    border-radius: 50%;
+    transform: translateX(-50%);
+    transition: all 0.3s;
+}
+
+.milestone.completed {
+    background: var(--primary-green);
+    border-color: var(--primary-green);
+    animation: milestoneComplete 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes milestoneComplete {
+    0% { transform: translateX(-50%) scale(0); }
+    50% { transform: translateX(-50%) scale(1.2); }
+    100% { transform: translateX(-50%) scale(1); }
+}
+
+/* 진행 상황 상세 */
+.progress-details {
+    display: flex;
+    justify-content: space-between;
+    margin-top: var(--spacing-s);
+    font-size: 13px;
+}
+
+.progress-text {
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+.days-left {
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.days-left.plenty {
+    color: var(--primary-green);
+    background: rgba(52, 199, 89, 0.1);
+}
+
+.days-left.caution {
+    color: var(--primary-orange);
+    background: rgba(255, 149, 0, 0.1);
+}
+
+.days-left.warning {
+    color: var(--primary-red);
+    background: rgba(255, 59, 48, 0.1);
+}
+
+.days-left.overdue {
+    color: var(--background);
+    background: var(--primary-red);
+}
+
+/* 빠른 메모 위젯 */
+.quick-note-widget {
+    position: absolute;
+    top: var(--spacing-m);
+    right: var(--spacing-m);
+    z-index: 10;
+}
+
+.quick-note-trigger {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 149, 0, 0.1);
+    border: 2px solid var(--primary-orange);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.quick-note-trigger:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(255, 149, 0, 0.3);
+}
+
+.note-icon {
+    font-size: 18px;
+}
+
+.note-count {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: var(--primary-red);
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 10px;
+    min-width: 18px;
+    text-align: center;
+}
+
+/* 메모 패널 */
+.quick-note-panel {
+    position: absolute;
+    top: 50px;
+    right: 0;
+    width: 320px;
+    background: var(--background);
+    border: 1px solid var(--gray-200);
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    padding: var(--spacing-m);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s;
+}
+
+.quick-note-panel.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.quick-note-input {
+    width: 100%;
+    padding: var(--spacing-s);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--spacing-s);
+    font: var(--caption-1);
+    resize: none;
+    font-family: inherit;
+    background: var(--surface);
+}
+
+.quick-note-input:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+}
+
+.note-actions {
+    display: flex;
+    gap: var(--spacing-s);
+    margin-top: var(--spacing-s);
+}
+
+.btn-add-note {
+    flex: 1;
+    padding: var(--spacing-s) var(--spacing-m);
+    background: var(--primary-blue);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font: var(--caption-1);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-add-note:hover {
+    background: #0051D5;
+}
+
+.btn-voice-note,
+.btn-photo-note {
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--gray-200);
+    background: var(--background);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.2s;
+}
+
+.btn-voice-note:hover,
+.btn-photo-note:hover {
+    background: var(--surface);
+}
+
+.btn-voice-note.recording {
+    background: var(--primary-red);
+    color: white;
+    animation: pulse 1s infinite;
+}
+
+/* 최근 메모 */
+.recent-notes {
+    margin-top: var(--spacing-m);
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.note-item {
+    display: flex;
+    align-items: start;
+    gap: var(--spacing-s);
+    padding: var(--spacing-s);
+    background: var(--surface);
+    border-radius: 6px;
+    margin-bottom: var(--spacing-s);
+    font: var(--caption-1);
+}
+
+.note-date {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+    min-width: 40px;
+}
+
+.note-text {
+    flex: 1;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+.btn-delete-note {
+    width: 20px;
+    height: 20px;
+    border: none;
+    background: var(--gray-200);
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    transition: all 0.2s;
+}
+
+.btn-delete-note:hover {
+    background: var(--primary-red);
+    color: white;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+/* 공유 모달 스타일 */
+.share-modal,
+.social-share-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    backdrop-filter: blur(5px);
+    animation: fadeIn 0.3s ease;
+}
+
+.share-modal-content,
+.social-share-content {
+    background: white;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 480px;
+    max-height: 80vh;
+    overflow-y: auto;
+    animation: slideInScale 0.3s ease;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+.share-modal-header,
+.social-share-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--separator);
+}
+
+.share-modal-header h3,
+.social-share-header h3 {
+    margin: 0;
+    font: var(--title-3);
+    color: var(--text-primary);
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    padding: 4px;
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+.close-btn:hover {
+    background: var(--gray-200);
+    color: var(--text-primary);
+}
+
+.share-modal-body,
+.social-share-body {
+    padding: 24px;
+}
+
+.share-preview {
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+    border: 1px solid var(--separator);
+}
+
+.share-preview h4 {
+    margin: 0 0 12px 0;
+    font: var(--title-3);
+    color: var(--text-primary);
+}
+
+.share-preview p {
+    margin: 8px 0;
+    font: var(--body);
+    color: var(--text-secondary);
+}
+
+.completion-note {
+    font-style: italic;
+    color: var(--text-tertiary);
+    padding: 12px;
+    background: var(--gray-50);
+    border-radius: 8px;
+    border-left: 3px solid var(--primary-blue);
+}
+
+.share-options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.share-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    background: var(--surface);
+    border: 1px solid var(--separator);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font: var(--body);
+    color: var(--text-primary);
+    text-align: left;
+}
+
+.share-option:hover {
+    background: var(--gray-50);
+    border-color: var(--primary-blue);
+    transform: translateY(-1px);
+}
+
+.share-option:active {
+    transform: translateY(0);
+}
+
+.social-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+}
+
+.social-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 16px;
+    background: var(--surface);
+    border: 1px solid var(--separator);
+    border-radius: 12px;
+    text-decoration: none;
+    color: var(--text-primary);
+    font: var(--body);
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.social-btn:hover {
+    background: var(--gray-50);
+    border-color: var(--primary-blue);
+    transform: translateY(-1px);
+}
+
+.social-btn.twitter:hover {
+    background: #1da1f2;
+    color: white;
+    border-color: #1da1f2;
+}
+
+.social-btn.facebook:hover {
+    background: #1877f2;
+    color: white;
+    border-color: #1877f2;
+}
+
+.social-btn.linkedin:hover {
+    background: #0077b5;
+    color: white;
+    border-color: #0077b5;
+}
+
+.social-btn.whatsapp:hover {
+    background: #25d366;
+    color: white;
+    border-color: #25d366;
+}
+
+.social-btn.copy:hover {
+    background: var(--primary-blue);
+    color: white;
+    border-color: var(--primary-blue);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* 모바일 최적화 */
+@media (max-width: 768px) {
+    .share-modal-content,
+    .social-share-content {
+        width: 95%;
+        margin: 20px;
+    }
+    
+    .social-options {
+        grid-template-columns: 1fr;
+    }
+    
+    .share-option {
+        padding: 14px 16px;
+    }
+    
+    .social-btn {
+        padding: 14px;
+    }
+}
+
+/* 반복 목표 스타일 */
+.recurring-info {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-s);
+    margin-top: var(--spacing-xs);
+    flex-wrap: wrap;
+}
+
+.recurring-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    background: var(--primary-blue);
+    color: white;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.recurring-badge.overdue {
+    background: var(--primary-red);
+    animation: pulse 2s infinite;
+}
+
+.recurring-stats {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+}
+
+.goal-card[data-recurring="true"] {
+    border-left: 3px solid var(--primary-blue);
+}
+
+.goal-card[data-recurring="true"] .category-bar {
+    background: linear-gradient(90deg, var(--primary-blue), var(--primary-blue-light));
+}
+
+.goal-card[data-recurring="true"].overdue {
+    border-left-color: var(--primary-red);
+}
+
+.goal-card[data-recurring="true"].overdue .category-bar {
+    background: linear-gradient(90deg, var(--primary-red), var(--primary-red-light));
+}
+
+.goal-card[data-recurring="true"].completed-today {
+    background: var(--primary-green-light);
+    border-left-color: var(--primary-green);
+}
+
+.goal-card[data-recurring="true"].completed-today .recurring-badge {
+    background: var(--primary-green);
+}
+
+/* 반복 목표 완료 버튼 스타일 */
+.btn-complete-inline[data-recurring="true"] {
+    background: var(--primary-blue);
+    color: white;
+}
+
+.btn-complete-inline[data-recurring="true"]:hover {
+    background: var(--primary-blue-dark);
+}
+
+.btn-complete-inline[data-recurring="true"]:disabled {
+    background: var(--gray-300);
+    color: var(--text-secondary);
+    cursor: not-allowed;
+}
+
+/* 반복 목표 관리 모달 스타일 */
+.recurring-management {
+    margin-top: var(--spacing-m);
+    padding: var(--spacing-m);
+    background: var(--surface);
+    border-radius: 12px;
+    border: 1px solid var(--separator);
+}
+
+.recurring-management h4 {
+    margin: 0 0 var(--spacing-s) 0;
+    font: var(--title-3);
+    color: var(--text-primary);
+}
+
+.recurring-controls {
+    display: flex;
+    gap: var(--spacing-s);
+    margin-top: var(--spacing-s);
+}
+
+.btn-deactivate-recurring {
+    background: var(--primary-red);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font: var(--caption-1);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-deactivate-recurring:hover {
+    background: var(--primary-red-dark);
+}
+
+.recurring-history {
+    margin-top: var(--spacing-m);
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.recurring-history-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-xs) 0;
+    border-bottom: 1px solid var(--separator);
+}
+
+.recurring-history-item:last-child {
+    border-bottom: none;
+}
+
+.recurring-history-date {
+    font: var(--caption-1);
+    color: var(--text-secondary);
+}
+
+.recurring-history-badge {
+    background: var(--primary-green);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 500;
+}
+
+/* 반복 목표 폼 스타일 */
+.form-group label[for="recurringSelect"] {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+.form-group label[for="recurringSelect"]::before {
+    content: "🔄";
+    font-size: 14px;
+}
