@@ -60,6 +60,13 @@
                 day: 'numeric'
             });
         },
+        
+        // 짧은 날짜 포맷 (MM/DD)
+        formatShortDate(date) {
+            if (!date) return '';
+            const d = new Date(date);
+            return `${d.getMonth() + 1}/${d.getDate()}`;
+        },
 
         // 상대 시간 계산
         getRelativeTime(date) {
@@ -1298,137 +1305,129 @@
             const completedTasks = tasks.filter(t => t.completed).length;
             const totalTasks = tasks.length;
             const taskProgress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+            
+            // 초기 감정 가져오기
+            const initialEmotion = goal.emotionalJourney && goal.emotionalJourney.length > 0 
+                ? goal.emotionalJourney[0].emotion 
+                : null;
 
             return `
                 <article class="goal-card ${isCompleted ? 'completed' : ''}" 
                          data-id="${goal.id}" 
                          data-category="${goal.category}">
-                    <div class="goal-card-header">
-                        <div class="goal-category-icon" style="background-color: ${categoryInfo.color}20;">
-                            <span class="category-emoji">${categoryInfo.icon}</span>
-                        </div>
-                        <div class="goal-header-actions">
-                            ${hasEmotionalJourney ? `
-                                <span class="emotion-indicator" title="감정 여정 기록됨">
-                                    💭
-                                </span>
-                            ` : ''}
-                            <button class="btn-delete" data-goal-id="${goal.id}" 
-                                    title="삭제" aria-label="목표 삭제하기">
-                                🗑️
-                            </button>
+                    <div class="category-bar ${goal.category}"></div>
+                    
+                    <div class="goal-header">
+                        <div>
+                            <h3 class="goal-title">${Utils.escapeHtml(goal.text)}</h3>
+                            <div class="goal-metadata">
+                                <span class="goal-category-badge">${categoryInfo.icon} ${categoryInfo.name}</span>
+                                ${initialEmotion ? `
+                                    <span class="goal-emotion" title="초기 감정">
+                                        ${CONFIG.EMOTIONS[initialEmotion]?.emoji || '😊'}
+                                    </span>
+                                ` : ''}
+                            </div>
                         </div>
                     </div>
                     
-                    <div class="goal-card-body">
-                        <h3 class="goal-title">${Utils.escapeHtml(goal.text)}</h3>
-                        
-                        ${goal.description ? `
-                            <p class="goal-description">${Utils.escapeHtml(goal.description)}</p>
-                        ` : ''}
-                        
-                        ${hasTasks ? `
-                            <div class="goal-tasks-preview">
-                                <div class="tasks-header">
-                                    <span class="tasks-count">📋 ${completedTasks}/${totalTasks} 완료</span>
-                                    <div class="progress-ring">
-                                        <svg width="24" height="24">
-                                            <circle cx="12" cy="12" r="10" fill="none" stroke="#e0e0e0" stroke-width="2"/>
-                                            <circle cx="12" cy="12" r="10" fill="none" stroke="${categoryInfo.color}" 
-                                                    stroke-width="2" stroke-dasharray="${2 * Math.PI * 10}" 
-                                                    stroke-dashoffset="${2 * Math.PI * 10 * (1 - taskProgress / 100)}"
-                                                    transform="rotate(-90 12 12)"/>
-                                        </svg>
-                                        <span class="progress-text">${taskProgress}%</span>
-                                    </div>
-                                </div>
-                                
-                                <div class="tasks-list-preview">
-                                    ${tasks.slice(0, 3).map(task => `
-                                        <div class="task-preview-item ${task.completed ? 'completed' : ''}">
-                                            <span class="task-check">${task.completed ? '✓' : '○'}</span>
-                                            <span class="task-text">${Utils.escapeHtml(task.text)}</span>
+                    ${hasTasks || !isCompleted ? `
+                        <div class="tasks-section">
+                            <div class="tasks-header">
+                                <span class="tasks-title">세부 태스크 ${hasTasks ? `(${completedTasks}/${totalTasks})` : ''}</span>
+                                <button class="btn-add-task btn-task" data-goal-id="${goal.id}">+ 태스크 추가</button>
+                            </div>
+                            
+                            ${hasTasks ? `
+                                <div class="task-list">
+                                    ${tasks.map(task => `
+                                        <div class="task-item ${task.completed ? 'completed' : ''}" data-task-id="${task.id}">
+                                            <div class="task-item-header">
+                                                <input type="checkbox" 
+                                                       class="task-checkbox" 
+                                                       data-goal-id="${goal.id}" 
+                                                       data-task-id="${task.id}"
+                                                       ${task.completed ? 'checked' : ''}>
+                                                <span class="task-text">${Utils.escapeHtml(task.text)}</span>
+                                                <button class="task-expand-btn ${task.notes && task.notes.length > 0 ? 'expanded' : ''}" 
+                                                        data-task-id="${task.id}">▶</button>
+                                            </div>
+                                            <div class="task-details ${task.notes && task.notes.length > 0 ? 'show' : ''}">
+                                                <div class="task-notes">
+                                                    ${task.notes ? task.notes.map(note => `
+                                                        <div class="task-note">
+                                                            <span class="note-date">${Utils.formatShortDate(note.date)}</span>
+                                                            <span class="note-text">${Utils.escapeHtml(note.text)}</span>
+                                                        </div>
+                                                    `).join('') : ''}
+                                                </div>
+                                                <button class="btn-add-note" data-goal-id="${goal.id}" data-task-id="${task.id}">+ 기록 추가</button>
+                                            </div>
                                         </div>
                                     `).join('')}
-                                    ${tasks.length > 3 ? `
-                                        <button class="btn-view-all-tasks btn-task" data-goal-id="${goal.id}">
-                                            +${tasks.length - 3}개 더보기
-                                        </button>
-                                    ` : ''}
                                 </div>
-                                
-                                ${!isCompleted ? `
-                                    <div class="quick-task-add">
-                                        <input type="text" class="quick-task-input" 
-                                               placeholder="빠른 태스크 추가..." 
-                                               data-goal-id="${goal.id}">
-                                        <button class="btn-quick-add" data-goal-id="${goal.id}">+</button>
-                                    </div>
-                                ` : ''}
-                            </div>
-                        ` : (!isCompleted ? `
-                            <div class="no-tasks-prompt">
-                                <button class="btn-add-first-task btn-task" data-goal-id="${goal.id}">
-                                    <span class="add-icon">+</span>
-                                    첫 번째 태스크 추가하기
-                                </button>
-                            </div>
-                        ` : '')}
+                            ` : ''}
+                            
+                            ${!isCompleted ? `
+                                <div class="quick-task-add">
+                                    <input type="text" class="quick-task-input" 
+                                           placeholder="빠른 태스크 추가..." 
+                                           data-goal-id="${goal.id}">
+                                    <button class="btn-quick-add" data-goal-id="${goal.id}">+</button>
+                                </div>
+                            ` : ''}
+                        </div>
                         
-                        ${goal.targetDate ? `
-                            <div class="goal-deadline">
-                                <span class="deadline-icon">📅</span>
-                                <span class="deadline-text">${Utils.formatDate(goal.targetDate)}</span>
+                        ${hasTasks ? `
+                            <div class="progress-section">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: ${taskProgress}%"></div>
+                                </div>
+                                <div class="progress-text">
+                                    <span>진행률</span>
+                                    <span>${taskProgress}%</span>
+                                </div>
                             </div>
                         ` : ''}
-                    </div>
+                    ` : ''}
                     
-                    <div class="goal-card-footer">
-                        <div class="goal-actions-group">
-                            ${!isCompleted ? `
-                                <button class="btn-action btn-task-manage btn-task" data-goal-id="${goal.id}" 
-                                        title="태스크 관리">
-                                    <span class="action-icon">📋</span>
-                                    <span class="action-text">태스크</span>
+                    <div class="goal-actions">
+                        ${!isCompleted ? `
+                            <button class="action-btn" data-goal-id="${goal.id}" onclick="Controller.handleGoalEdit('${goal.id}')">
+                                📝 편집
+                            </button>
+                            <button class="action-btn" data-goal-id="${goal.id}" onclick="Controller.handleSchedule('${goal.id}')">
+                                🗓️ 일정
+                            </button>
+                            <button class="action-btn complete btn-complete" data-goal-id="${goal.id}">
+                                ✅ 완료
+                            </button>
+                        ` : `
+                            ${hasImage ? `
+                                <button class="action-btn btn-view-image" data-goal-id="${goal.id}">
+                                    📷 사진
                                 </button>
-                                <button class="btn-action btn-emotion" data-goal-id="${goal.id}" 
-                                        title="감정 기록">
-                                    <span class="action-icon">😊</span>
-                                    <span class="action-text">감정</span>
-                                </button>
-                                <button class="btn-action btn-complete-goal btn-complete" data-goal-id="${goal.id}" 
-                                        title="목표 완료">
-                                    <span class="action-icon">✅</span>
-                                    <span class="action-text">완료</span>
-                                </button>
-                            ` : `
-                                ${hasImage ? `
-                                    <button class="btn-action btn-view-image" data-goal-id="${goal.id}" 
-                                            title="사진 보기">
-                                        <span class="action-icon">📷</span>
-                                        <span class="action-text">사진</span>
-                                    </button>
-                                ` : ''}
-                                <button class="btn-action btn-share" data-goal-id="${goal.id}" 
-                                        title="공유">
-                                    <span class="action-icon">🔗</span>
-                                    <span class="action-text">공유</span>
-                                </button>
-                            `}
-                        </div>
+                            ` : ''}
+                            <button class="action-btn btn-share" data-goal-id="${goal.id}">
+                                🔗 공유
+                            </button>
+                            <button class="action-btn" data-goal-id="${goal.id}" onclick="Controller.handleGoalReopen('${goal.id}')">
+                                🔄 다시 열기
+                            </button>
+                        `}
                     </div>
                     
                     ${isCompleted && goal.completionNote ? `
-                        <div class="goal-completion-banner">
-                            <div class="completion-header">
-                                <span class="completion-date">${Utils.formatDate(goal.completedAt)}</span>
+                        <div class="goal-completion-banner" style="margin-top: 16px; padding: 12px; background: #f0f9ff; border-radius: 8px;">
+                            <div class="completion-header" style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span class="completion-date" style="font-size: 12px; color: #64748b;">${Utils.formatDate(goal.completedAt)}</span>
                                 ${goal.completionEmotion ? `
                                     <span class="completion-emotion">
                                         ${CONFIG.EMOTIONS[goal.completionEmotion]?.emoji || '😊'}
                                     </span>
                                 ` : ''}
                             </div>
-                            <p class="completion-note">${Utils.escapeHtml(goal.completionNote)}</p>
+                            <p class="completion-note" style="font-size: 14px; color: #475569; margin: 0;">${Utils.escapeHtml(goal.completionNote)}</p>
                         </div>
                     ` : ''}
                 </article>
@@ -1441,20 +1440,16 @@
             if (!container) return;
 
             if (recommendations.length === 0) {
-                container.innerHTML = '<p>추천을 생성중입니다...</p>';
+                container.innerHTML = '<p style="color: #718096; font-size: 14px;">추천을 생성중입니다...</p>';
                 return;
             }
 
             container.innerHTML = recommendations.map(rec => `
-                <div class="recommendation-card">
-                    <div class="rec-category">${CONFIG.CATEGORIES[rec.category]?.icon || '✨'}</div>
-                    <div class="rec-text">${Utils.escapeHtml(rec.text)}</div>
-                    <div class="rec-reason">${Utils.escapeHtml(rec.reason)}</div>
-                    <button class="btn-add-recommendation" 
-                            data-text="${Utils.escapeHtml(rec.text)}" 
-                            data-category="${rec.category}">
-                        추가하기
-                    </button>
+                <div class="recommendation-chip btn-add-recommendation" 
+                     data-text="${Utils.escapeHtml(rec.text)}" 
+                     data-category="${rec.category}"
+                     title="${Utils.escapeHtml(rec.reason)}">
+                    ${CONFIG.CATEGORIES[rec.category]?.icon || '✨'} ${Utils.escapeHtml(rec.text)}
                 </div>
             `).join('');
         },
@@ -1775,6 +1770,31 @@
                     this.handleQuickTaskAdd(goalId, input.value.trim());
                     input.value = '';
                 }
+            }
+            
+            // 태스크 확장/축소 버튼
+            if (target.closest('.task-expand-btn')) {
+                const btn = target.closest('.task-expand-btn');
+                const taskItem = btn.closest('.task-item');
+                const taskDetails = taskItem.querySelector('.task-details');
+                
+                btn.classList.toggle('expanded');
+                taskDetails.classList.toggle('show');
+            }
+            
+            // 태스크 체크박스
+            if (target.classList.contains('task-checkbox')) {
+                const goalId = target.dataset.goalId;
+                const taskId = target.dataset.taskId;
+                const completed = target.checked;
+                this.handleTaskToggle(goalId, taskId, completed);
+            }
+            
+            // 노트 추가 버튼
+            if (target.classList.contains('btn-add-note')) {
+                const goalId = target.dataset.goalId;
+                const taskId = target.dataset.taskId;
+                this.handleAddNoteClick(goalId, taskId);
             }
 
             if (target.closest('.btn-emotion')) {
@@ -2785,6 +2805,129 @@
                 View.hideLoading();
                 View.showNotification('달성 카드 생성에 실패했습니다.', 'error');
                 console.error(err);
+            }
+        },
+        
+        // 노트 추가 클릭 핸들러
+        handleAddNoteClick(goalId, taskId) {
+            const noteBtn = document.querySelector(`.btn-add-note[data-task-id="${taskId}"]`);
+            const taskDetails = noteBtn.closest('.task-details');
+            
+            // 기존 폼이 있는지 확인
+            let noteForm = taskDetails.querySelector('.note-input-form');
+            
+            // 폼이 없으면 생성
+            if (!noteForm) {
+                noteForm = document.createElement('div');
+                noteForm.className = 'note-input-form';
+                noteForm.innerHTML = `
+                    <textarea class="note-input" placeholder="진행 상황, 메모, 참고사항 등을 기록하세요..."></textarea>
+                    <div class="note-actions">
+                        <button class="note-cancel-btn" data-goal-id="${goalId}" data-task-id="${taskId}">취소</button>
+                        <button class="note-save-btn" data-goal-id="${goalId}" data-task-id="${taskId}">저장</button>
+                    </div>
+                `;
+                taskDetails.appendChild(noteForm);
+                
+                // 이벤트 리스너 추가
+                noteForm.querySelector('.note-cancel-btn').addEventListener('click', (e) => {
+                    this.handleNoteCancelClick(e.target.dataset.goalId, e.target.dataset.taskId);
+                });
+                
+                noteForm.querySelector('.note-save-btn').addEventListener('click', (e) => {
+                    this.handleNoteSaveClick(e.target.dataset.goalId, e.target.dataset.taskId);
+                });
+            }
+            
+            noteForm.classList.add('show');
+            noteBtn.style.display = 'none';
+            noteForm.querySelector('.note-input').focus();
+        },
+        
+        // 노트 취소 클릭 핸들러
+        handleNoteCancelClick(goalId, taskId) {
+            const noteBtn = document.querySelector(`.btn-add-note[data-task-id="${taskId}"]`);
+            const noteForm = noteBtn.closest('.task-details').querySelector('.note-input-form');
+            
+            noteForm.classList.remove('show');
+            noteBtn.style.display = 'block';
+            noteForm.querySelector('.note-input').value = '';
+        },
+        
+        // 노트 저장 클릭 핸들러
+        handleNoteSaveClick(goalId, taskId) {
+            const noteBtn = document.querySelector(`.btn-add-note[data-task-id="${taskId}"]`);
+            const noteForm = noteBtn.closest('.task-details').querySelector('.note-input-form');
+            const noteText = noteForm.querySelector('.note-input').value.trim();
+            
+            if (!noteText) {
+                View.showNotification('노트 내용을 입력해주세요.', 'warning');
+                return;
+            }
+            
+            // 노트 데이터 추가
+            const goal = DataModel.state.currentProfile?.bucketList.find(g => g.id === goalId);
+            if (goal && goal.tasks) {
+                const task = goal.tasks.find(t => t.id === taskId);
+                if (task) {
+                    if (!task.notes) {
+                        task.notes = [];
+                    }
+                    
+                    task.notes.push({
+                        id: Utils.generateId(),
+                        text: noteText,
+                        date: new Date().toISOString()
+                    });
+                    
+                    DataModel.saveProfiles();
+                    
+                    // UI 업데이트
+                    noteForm.classList.remove('show');
+                    noteBtn.style.display = 'block';
+                    noteForm.querySelector('.note-input').value = '';
+                    
+                    // 전체 렌더링
+                    this.render();
+                    
+                    View.showNotification('노트가 추가되었습니다.', 'success');
+                }
+            }
+        },
+
+        // 목표 편집 핸들러
+        handleGoalEdit(goalId) {
+            const goal = DataModel.state.currentProfile?.bucketList.find(g => g.id === goalId);
+            if (!goal) return;
+            
+            // TODO: 목표 편집 모달 구현
+            View.showNotification('목표 편집 기능은 준비 중입니다.', 'info');
+        },
+        
+        // 일정 관리 핸들러
+        handleSchedule(goalId) {
+            const goal = DataModel.state.currentProfile?.bucketList.find(g => g.id === goalId);
+            if (!goal) return;
+            
+            // TODO: 일정 관리 모달 구현
+            View.showNotification('일정 관리 기능은 준비 중입니다.', 'info');
+        },
+        
+        // 목표 다시 열기 핸들러
+        handleGoalReopen(goalId) {
+            const goal = DataModel.state.currentProfile?.bucketList.find(g => g.id === goalId);
+            if (!goal) return;
+            
+            if (confirm('이 목표를 다시 진행 중으로 변경하시겠습니까?')) {
+                goal.completed = false;
+                goal.completedAt = null;
+                goal.completionNote = null;
+                goal.completionEmotion = null;
+                goal.completionImage = null;
+                
+                DataModel.saveProfiles();
+                this.render();
+                View.showNotification('목표가 다시 활성화되었습니다.', 'success');
             }
         },
 

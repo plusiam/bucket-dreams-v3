@@ -4775,3 +4775,462 @@ body {
         flex-wrap: nowrap;
     }
 }
+
+/* ===== 새로운 목표 카드 UI 스타일 ===== */
+
+/* 목표 그리드 레이아웃 */
+.goals-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 24px;
+    margin-bottom: 40px;
+}
+
+/* 개별 목표 카드 - 크고 중요하게 */
+.goal-card {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+}
+
+.goal-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.12);
+}
+
+.goal-card.completed {
+    opacity: 0.9;
+}
+
+/* 카테고리 색상 바 */
+.category-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.category-bar.travel { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+.category-bar.hobby { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+.category-bar.career { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+.category-bar.health { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+.category-bar.relationship { background: linear-gradient(135deg, #f77062 0%, #fe5196 100%); }
+.category-bar.other { background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); }
+
+/* 목표 헤더 */
+.goal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+}
+
+.goal-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 8px;
+    flex: 1;
+    line-height: 1.3;
+}
+
+.goal-metadata {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.goal-category-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 12px;
+    background: #f7fafc;
+    border-radius: 20px;
+    font-size: 13px;
+    color: #4a5568;
+}
+
+.goal-emotion {
+    font-size: 24px;
+}
+
+/* 태스크 섹션 */
+.tasks-section {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.tasks-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.tasks-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #4a5568;
+}
+
+.btn-add-task {
+    background: none;
+    border: 1px dashed #cbd5e0;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    color: #718096;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-add-task:hover {
+    border-color: #4facfe;
+    color: #4facfe;
+    background: rgba(79, 172, 254, 0.05);
+}
+
+/* 태스크 리스트 */
+.task-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.task-item {
+    background: #f7fafc;
+    border-radius: 8px;
+    padding: 12px;
+    transition: all 0.2s;
+}
+
+.task-item:hover {
+    background: #edf2f7;
+}
+
+.task-item-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.task-checkbox {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.task-text {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 500;
+    color: #2d3748;
+}
+
+.task-expand-btn {
+    background: none;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    color: #718096;
+    font-size: 12px;
+    transition: transform 0.2s;
+}
+
+.task-expand-btn:hover {
+    color: #4a5568;
+}
+
+.task-expand-btn.expanded {
+    transform: rotate(90deg);
+}
+
+.task-item.completed {
+    opacity: 0.7;
+}
+
+.task-item.completed .task-text {
+    text-decoration: line-through;
+    color: #a0aec0;
+}
+
+/* 태스크 상세 기록 */
+.task-details {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px dashed #e2e8f0;
+    display: none;
+}
+
+.task-details.show {
+    display: block;
+}
+
+.task-notes {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.task-note {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    font-size: 13px;
+    color: #4a5568;
+    line-height: 1.5;
+}
+
+.note-date {
+    font-size: 11px;
+    color: #a0aec0;
+    white-space: nowrap;
+    margin-top: 2px;
+    font-weight: 500;
+}
+
+.note-text {
+    flex: 1;
+    background: white;
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+}
+
+.btn-add-note {
+    font-size: 12px;
+    color: #4facfe;
+    background: none;
+    border: 1px dashed #4facfe;
+    padding: 4px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-add-note:hover {
+    background: rgba(79, 172, 254, 0.05);
+}
+
+/* 노트 입력 폼 */
+.note-input-form {
+    display: none;
+    margin-top: 8px;
+    padding: 8px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+}
+
+.note-input-form.show {
+    display: block;
+}
+
+.note-input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    font-size: 13px;
+    resize: vertical;
+    min-height: 60px;
+    font-family: inherit;
+}
+
+.note-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+    justify-content: flex-end;
+}
+
+.note-save-btn, .note-cancel-btn {
+    padding: 6px 16px;
+    font-size: 12px;
+    border-radius: 4px;
+    border: 1px solid #e2e8f0;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.note-save-btn {
+    background: #4facfe;
+    color: white;
+    border-color: #4facfe;
+}
+
+.note-save-btn:hover {
+    background: #3899ed;
+}
+
+.note-cancel-btn:hover {
+    background: #f7fafc;
+}
+
+/* 진행률 섹션 */
+.progress-section {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.progress-bar {
+    height: 8px;
+    background: #e2e8f0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.progress-text {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    font-size: 12px;
+    color: #718096;
+}
+
+/* 액션 버튼 그룹 */
+.goal-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.action-btn {
+    flex: 1;
+    padding: 10px 16px;
+    border: 1px solid #e2e8f0;
+    background: white;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.action-btn:hover {
+    background: #f7fafc;
+    border-color: #cbd5e0;
+}
+
+.action-btn.primary {
+    background: #4facfe;
+    color: white;
+    border-color: #4facfe;
+}
+
+.action-btn.primary:hover {
+    background: #3899ed;
+}
+
+.action-btn.complete {
+    background: #48bb78;
+    color: white;
+    border-color: #48bb78;
+}
+
+.action-btn.complete:hover {
+    background: #38a169;
+}
+
+/* 추천 섹션 - 칩 스타일 */
+.recommendations-section {
+    background: #f7fafc;
+    border-radius: 16px;
+    padding: 24px;
+    margin-top: 40px;
+}
+
+.recommendations-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #4a5568;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.recommendation-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.recommendation-chip {
+    padding: 10px 20px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 24px;
+    font-size: 14px;
+    color: #4a5568;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.recommendation-chip:hover {
+    border-color: #4facfe;
+    color: #4facfe;
+    background: rgba(79, 172, 254, 0.05);
+    transform: translateY(-1px);
+}
+
+/* 빠른 태스크 추가 (목표 카드에서) */
+.quick-task-add {
+    margin-top: 12px;
+    display: flex;
+    gap: 8px;
+}
+
+.quick-task-input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 13px;
+}
+
+.btn-quick-add {
+    padding: 8px 16px;
+    background: #4facfe;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-quick-add:hover {
+    background: #3899ed;
+}
