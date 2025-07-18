@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Page</title>
+</head>
+<body>
+    <h1>Test Page</h1>
+    <p>If you can see this, the web server is working.</p>
+    <button onclick="testJS()">Test JavaScript</button>
+    <div id="result"></div>
+    
+    <script>
+        function testJS() {
+            document.getElementById('result').innerHTML = 'JavaScript is working!';
+        }
+        
+        // Test if main script has syntax errors
+        var script = document.createElement('script');
+        script.src = './script.js';
+        script.onerror = function() {
+            document.getElementById('result').innerHTML += '<br>Error loading script.js';
+        };
+        script.onload = function() {
+            document.getElementById('result').innerHTML += '<br>script.js loaded successfully';
+        };
+        document.body.appendChild(script);
+    </script>
+</body>
+</html>

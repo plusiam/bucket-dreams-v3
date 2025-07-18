@@ -317,17 +317,14 @@
         // 프로필 관리
         loadProfiles() {
             const data = Storage.get(CONFIG.STORAGE_KEY);
-            console.log('Raw data from storage:', data);
             
             // 데이터가 배열인지 확인
             if (Array.isArray(data)) {
                 this.state.profiles = data;
             } else {
-                console.log('Data is not an array, initializing empty array');
                 this.state.profiles = [];
             }
             
-            console.log('Loaded profiles:', this.state.profiles);
             return this.state.profiles;
         },
 
@@ -1202,12 +1199,8 @@
 
         // 프로필 선택자 렌더링
         renderProfileSelector(profiles = []) {
-            console.log('View.renderProfileSelector called with:', profiles);
             const container = document.getElementById('profileOptions');
-            if (!container) {
-                console.error('profileOptions container not found!');
-                return;
-            }
+            if (!container) return;
 
             // 프로필이 없어도 버튼은 표시
             container.innerHTML = profiles.map(profile => {
@@ -1620,38 +1613,29 @@
     const Controller = {
         // 초기화
         init() {
-            console.log('Controller.init() called');
-            
             try {
                 // DOM 요소 초기화
-                console.log('Initializing DOM elements...');
                 View.initElements();
                 
                 // 이미지 설정 로드
-                console.log('Loading image settings...');
                 ImageProcessor.loadSettings();
                 
-                // 차트 초기화 (일시적으로 try-catch로 감싸기)
+                // 차트 초기화
                 try {
-                    console.log('Initializing charts...');
                     ChartManager.initCharts();
                 } catch (chartError) {
                     console.warn('Chart initialization skipped:', chartError);
                 }
                 
                 // 데이터 로드
-                console.log('Loading profiles...');
                 DataModel.loadProfiles();
                 
                 // 이벤트 바인딩
-                console.log('Binding events...');
                 this.bindEvents();
                 
                 // 초기 렌더링
-                console.log('Initial render...');
                 this.render();
                 
-                console.log('Initialization complete');
             } catch (error) {
                 console.error('Error during initialization:', error);
             }
@@ -1941,24 +1925,17 @@
 
         // 렌더링
         render() {
-            console.log('Controller.render() called');
             const profiles = DataModel.state.profiles;
             const currentProfile = DataModel.state.currentProfile;
-            console.log('Profiles:', profiles);
-            console.log('Current profile:', currentProfile);
 
             if (!currentProfile) {
-                console.log('No current profile, showing profile selector');
                 // 프로필 선택 화면
                 const profileSelector = document.getElementById('profileSelector');
                 const mainApp = document.getElementById('mainApp');
-                console.log('profileSelector element:', profileSelector);
-                console.log('mainApp element:', mainApp);
                 
                 if (profileSelector) profileSelector.style.display = 'block';
                 if (mainApp) mainApp.classList.remove('active');
                 
-                console.log('Calling View.renderProfileSelector with profiles:', profiles);
                 View.renderProfileSelector(profiles);
             } else {
                 // 메인 앱 화면
@@ -3264,15 +3241,9 @@
     });
 
     // DOM 로드 완료 시 앱 시작
-    console.log('Script loaded, readyState:', document.readyState);
-    
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('DOMContentLoaded fired');
-            Controller.init();
-        });
+        document.addEventListener('DOMContentLoaded', () => Controller.init());
     } else {
-        console.log('DOM already loaded, initializing immediately');
         Controller.init();
     }
 
