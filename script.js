@@ -1339,10 +1339,11 @@
                             </div>
                             
                             ${hasTasks ? `
-                                <div class="task-list">
+                                <div class="task-list" data-goal-id="${goal.id}">
                                     ${tasks.map(task => `
-                                        <div class="task-item ${task.completed ? 'completed' : ''}" data-task-id="${task.id}">
+                                        <div class="task-item ${task.completed ? 'completed' : ''}" data-task-id="${task.id}" draggable="true">
                                             <div class="task-item-header">
+                                                <span class="drag-handle">≡</span>
                                                 <input type="checkbox" 
                                                        class="task-checkbox" 
                                                        data-goal-id="${goal.id}" 
@@ -1351,13 +1352,22 @@
                                                 <span class="task-text">${Utils.escapeHtml(task.text)}</span>
                                                 <button class="task-expand-btn ${task.notes && task.notes.length > 0 ? 'expanded' : ''}" 
                                                         data-task-id="${task.id}">▶</button>
+                                                <button class="btn-delete-task" 
+                                                        data-goal-id="${goal.id}" 
+                                                        data-task-id="${task.id}"
+                                                        title="삭제">×</button>
                                             </div>
                                             <div class="task-details ${task.notes && task.notes.length > 0 ? 'show' : ''}">
                                                 <div class="task-notes">
                                                     ${task.notes ? task.notes.map(note => `
-                                                        <div class="task-note">
+                                                        <div class="task-note" data-note-id="${note.id}">
                                                             <span class="note-date">${Utils.formatShortDate(note.date)}</span>
                                                             <span class="note-text">${Utils.escapeHtml(note.text)}</span>
+                                                            <button class="btn-delete-note" 
+                                                                    data-goal-id="${goal.id}" 
+                                                                    data-task-id="${task.id}"
+                                                                    data-note-id="${note.id}"
+                                                                    title="노트 삭제">×</button>
                                                         </div>
                                                     `).join('') : ''}
                                                 </div>
@@ -1369,11 +1379,16 @@
                             ` : ''}
                             
                             ${!isCompleted ? `
-                                <div class="quick-task-add">
-                                    <input type="text" class="quick-task-input" 
-                                           placeholder="빠른 태스크 추가..." 
+                                <button class="inline-task-add" onclick="Controller.showInlineTaskAdd(this, '${goal.id}')">
+                                    <span>+</span>
+                                    <span>태스크 추가</span>
+                                </button>
+                                <div class="inline-task-add-form" data-goal-id="${goal.id}">
+                                    <input type="text" class="inline-task-input" 
+                                           placeholder="새 태스크 입력..." 
                                            data-goal-id="${goal.id}">
-                                    <button class="btn-quick-add" data-goal-id="${goal.id}">+</button>
+                                    <button class="task-save-btn" onclick="Controller.saveInlineTask('${goal.id}')">추가</button>
+                                    <button class="task-edit-cancel-btn" onclick="Controller.cancelInlineTask('${goal.id}')">취소</button>
                                 </div>
                             ` : ''}
                         </div>
@@ -1724,6 +1739,9 @@
             // 드래그 앤 드롭
             this.bindDragDropEvents();
             
+            // 태스크 드래그 앤 드롭
+            this.bindTaskDragEvents();
+            
             // 온라인/오프라인 이벤트
             window.addEventListener('online', () => View.showNotification('온라인 상태로 전환되었습니다.', 'success'));
             window.addEventListener('offline', () => View.showNotification('오프라인 상태입니다. 일부 기능이 제한될 수 있습니다.', 'warning'));
@@ -1812,6 +1830,21 @@
                 const goalId = target.dataset.goalId;
                 const taskId = target.dataset.taskId;
                 this.handleAddNoteClick(goalId, taskId);
+            }
+            
+            // 태스크 삭제 버튼
+            if (target.classList.contains('btn-delete-task')) {
+                const goalId = target.dataset.goalId;
+                const taskId = target.dataset.taskId;
+                this.handleTaskDelete(goalId, taskId);
+            }
+            
+            // 노트 삭제 버튼
+            if (target.classList.contains('btn-delete-note')) {
+                const goalId = target.dataset.goalId;
+                const taskId = target.dataset.taskId;
+                const noteId = target.dataset.noteId;
+                this.handleNoteDelete(goalId, taskId, noteId);
             }
 
             if (target.closest('.btn-emotion')) {
@@ -2056,6 +2089,99 @@
                     }
                 });
             });
+        },
+        
+        // 태스크 드래그 앤 드롭 이벤트
+        bindTaskDragEvents() {
+            let draggedTask = null;
+            let draggedGoalId = null;
+            
+            // 이벤트 위임을 사용하여 동적 요소에도 적용
+            document.addEventListener('dragstart', (e) => {
+                if (e.target.classList.contains('task-item')) {
+                    draggedTask = e.target;
+                    draggedGoalId = e.target.closest('.task-list').dataset.goalId;
+                    e.target.classList.add('dragging');
+                    e.dataTransfer.effectAllowed = 'move';
+                }
+            });
+            
+            document.addEventListener('dragend', (e) => {
+                if (e.target.classList.contains('task-item')) {
+                    e.target.classList.remove('dragging');
+                    
+                    // 모든 drag-over 클래스 제거
+                    document.querySelectorAll('.task-item.drag-over').forEach(item => {
+                        item.classList.remove('drag-over');
+                    });
+                }
+            });
+            
+            document.addEventListener('dragover', (e) => {
+                if (e.target.closest('.task-item') && draggedTask) {
+                    e.preventDefault();
+                    const taskItem = e.target.closest('.task-item');
+                    if (taskItem !== draggedTask) {
+                        taskItem.classList.add('drag-over');
+                    }
+                }
+            });
+            
+            document.addEventListener('dragleave', (e) => {
+                if (e.target.closest('.task-item')) {
+                    e.target.closest('.task-item').classList.remove('drag-over');
+                }
+            });
+            
+            document.addEventListener('drop', (e) => {
+                if (e.target.closest('.task-item') && draggedTask) {
+                    e.preventDefault();
+                    const targetTask = e.target.closest('.task-item');
+                    const targetList = targetTask.closest('.task-list');
+                    const targetGoalId = targetList.dataset.goalId;
+                    
+                    if (targetTask !== draggedTask) {
+                        // 태스크 순서 변경
+                        const allTasks = [...targetList.querySelectorAll('.task-item')];
+                        const draggedIndex = allTasks.indexOf(draggedTask);
+                        const targetIndex = allTasks.indexOf(targetTask);
+                        
+                        if (draggedIndex < targetIndex) {
+                            targetList.insertBefore(draggedTask, targetTask.nextSibling);
+                        } else {
+                            targetList.insertBefore(draggedTask, targetTask);
+                        }
+                        
+                        // 데이터 업데이트
+                        this.updateTaskOrder(draggedGoalId, targetGoalId);
+                    }
+                    
+                    targetTask.classList.remove('drag-over');
+                }
+            });
+        },
+        
+        // 태스크 순서 업데이트
+        updateTaskOrder(sourceGoalId, targetGoalId) {
+            // 같은 목표 내에서 순서만 변경된 경우
+            if (sourceGoalId === targetGoalId) {
+                const goal = DataModel.state.currentProfile?.bucketList.find(g => g.id === sourceGoalId);
+                if (goal && goal.tasks) {
+                    // DOM 순서대로 태스크 재정렬
+                    const taskList = document.querySelector(`.task-list[data-goal-id="${sourceGoalId}"]`);
+                    const newOrder = [...taskList.querySelectorAll('.task-item')].map(item => item.dataset.taskId);
+                    
+                    // 새로운 순서로 태스크 배열 재정렬
+                    const orderedTasks = [];
+                    newOrder.forEach(taskId => {
+                        const task = goal.tasks.find(t => t.id === taskId);
+                        if (task) orderedTasks.push(task);
+                    });
+                    
+                    goal.tasks = orderedTasks;
+                    DataModel.saveProfiles();
+                }
+            }
         },
 
         // 렌더링
@@ -3021,6 +3147,91 @@
         // 태스크 편집 취소
         handleTaskEditCancel(goalId, taskId) {
             this.render(); // 전체 다시 렌더링하여 원래 상태로 복구
+        },
+        
+        // 태스크 삭제
+        handleTaskDelete(goalId, taskId) {
+            if (!confirm('이 태스크를 삭제하시겠습니까?')) return;
+            
+            const goal = DataModel.state.currentProfile?.bucketList.find(g => g.id === goalId);
+            if (goal && goal.tasks) {
+                goal.tasks = goal.tasks.filter(t => t.id !== taskId);
+                DataModel.saveProfiles();
+                this.render();
+                View.showNotification('태스크가 삭제되었습니다.', 'info');
+            }
+        },
+        
+        // 노트 삭제
+        handleNoteDelete(goalId, taskId, noteId) {
+            const goal = DataModel.state.currentProfile?.bucketList.find(g => g.id === goalId);
+            if (goal && goal.tasks) {
+                const task = goal.tasks.find(t => t.id === taskId);
+                if (task && task.notes) {
+                    task.notes = task.notes.filter(n => n.id !== noteId);
+                    DataModel.saveProfiles();
+                    this.render();
+                    View.showNotification('노트가 삭제되었습니다.', 'info');
+                }
+            }
+        },
+
+        // 인라인 태스크 추가 표시
+        showInlineTaskAdd(button, goalId) {
+            button.style.display = 'none';
+            const form = document.querySelector(`.inline-task-add-form[data-goal-id="${goalId}"]`);
+            form.classList.add('show');
+            const input = form.querySelector('.inline-task-input');
+            input.focus();
+            
+            // Enter 키로 저장
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    this.saveInlineTask(goalId);
+                } else if (e.key === 'Escape') {
+                    this.cancelInlineTask(goalId);
+                }
+            });
+        },
+        
+        // 인라인 태스크 저장
+        saveInlineTask(goalId) {
+            const form = document.querySelector(`.inline-task-add-form[data-goal-id="${goalId}"]`);
+            const input = form.querySelector('.inline-task-input');
+            const taskText = input.value.trim();
+            
+            if (!taskText) {
+                View.showNotification('태스크를 입력해주세요.', 'warning');
+                return;
+            }
+            
+            // 태스크 추가
+            const taskData = {
+                text: taskText,
+                priority: 'medium'
+            };
+            
+            DataModel.addTask(goalId, taskData);
+            
+            // UI 초기화
+            input.value = '';
+            form.classList.remove('show');
+            const addButton = form.previousElementSibling;
+            if (addButton) addButton.style.display = 'flex';
+            
+            this.render();
+            View.showNotification('태스크가 추가되었습니다.', 'success');
+        },
+        
+        // 인라인 태스크 추가 취소
+        cancelInlineTask(goalId) {
+            const form = document.querySelector(`.inline-task-add-form[data-goal-id="${goalId}"]`);
+            const input = form.querySelector('.inline-task-input');
+            
+            input.value = '';
+            form.classList.remove('show');
+            const addButton = form.previousElementSibling;
+            if (addButton) addButton.style.display = 'flex';
         },
 
         // 필터 변경

@@ -5549,3 +5549,216 @@ body {
 .task-list::-webkit-scrollbar-thumb:hover {
     background: #8E8E93;
 }
+
+/* ===== 드래그 앤 드롭 및 삭제 기능 ===== */
+
+/* 드래그 핸들 */
+.drag-handle {
+    color: #C6C6C8;
+    cursor: move;
+    margin-right: 8px;
+    font-size: 16px;
+    user-select: none;
+    transition: color 0.2s;
+}
+
+.drag-handle:hover {
+    color: #8E8E93;
+}
+
+/* 태스크 드래그 상태 */
+.task-item.dragging {
+    opacity: 0.5;
+    transform: scale(0.95);
+    cursor: grabbing;
+}
+
+.task-item.drag-over {
+    border-top: 2px solid #007AFF;
+}
+
+/* 삭제 버튼 - 태스크 */
+.btn-delete-task {
+    width: 24px;
+    height: 24px;
+    border: none;
+    background: none;
+    color: #FF3B30;
+    font-size: 20px;
+    font-weight: 300;
+    cursor: pointer;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: all 0.2s;
+    margin-left: auto;
+}
+
+.task-item:hover .btn-delete-task {
+    opacity: 1;
+}
+
+.btn-delete-task:hover {
+    background: #FF3B30;
+    color: white;
+    transform: scale(1.1);
+}
+
+/* 노트 삭제 버튼 */
+.btn-delete-note {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 20px;
+    height: 20px;
+    border: none;
+    background: #FF3B30;
+    color: white;
+    font-size: 14px;
+    font-weight: 300;
+    cursor: pointer;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: all 0.2s;
+}
+
+.task-note {
+    position: relative;
+}
+
+.task-note:hover .btn-delete-note {
+    opacity: 1;
+}
+
+.btn-delete-note:hover {
+    transform: scale(1.1) rotate(90deg);
+}
+
+/* 인라인 태스크 추가 */
+.inline-task-add {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    margin-top: 8px;
+    border: 2px dashed #E5E5EA;
+    border-radius: 8px;
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #8E8E93;
+    font-size: 14px;
+}
+
+.inline-task-add:hover {
+    border-color: #007AFF;
+    color: #007AFF;
+    background: rgba(0, 122, 255, 0.05);
+}
+
+.inline-task-add-form {
+    display: none;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.inline-task-add-form.show {
+    display: flex;
+}
+
+.inline-task-input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 2px solid #007AFF;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: inherit;
+    background: white;
+}
+
+.inline-task-input:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+}
+
+/* 애니메이션 */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        transform: scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+}
+
+.task-item {
+    animation: slideIn 0.3s ease-out;
+}
+
+.task-item.removing {
+    animation: fadeOut 0.3s ease-out;
+}
+
+.task-note.removing {
+    animation: fadeOut 0.2s ease-out;
+}
+
+/* 목표 카드 액션 개선 */
+.goal-card-menu {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    display: flex;
+    gap: 8px;
+}
+
+.btn-goal-menu {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: #F2F2F7;
+    color: #8E8E93;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.btn-goal-menu:hover {
+    background: #E5E5EA;
+    color: #3C3C43;
+}
+
+/* 드롭 존 */
+.drop-zone {
+    min-height: 60px;
+    border: 2px dashed transparent;
+    border-radius: 8px;
+    transition: all 0.2s;
+    margin: 8px 0;
+}
+
+.drop-zone.active {
+    border-color: #007AFF;
+    background: rgba(0, 122, 255, 0.05);
+}
