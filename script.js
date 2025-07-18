@@ -316,9 +316,19 @@
 
         // 프로필 관리
         loadProfiles() {
-            const data = Storage.get(CONFIG.STORAGE_KEY) || [];
-            this.state.profiles = data;
-            return data;
+            const data = Storage.get(CONFIG.STORAGE_KEY);
+            console.log('Raw data from storage:', data);
+            
+            // 데이터가 배열인지 확인
+            if (Array.isArray(data)) {
+                this.state.profiles = data;
+            } else {
+                console.log('Data is not an array, initializing empty array');
+                this.state.profiles = [];
+            }
+            
+            console.log('Loaded profiles:', this.state.profiles);
+            return this.state.profiles;
         },
 
         saveProfiles() {
@@ -3216,7 +3226,8 @@
 
         // 서비스 워커 등록
         registerServiceWorker() {
-            if ('serviceWorker' in navigator) {
+            // file:// 프로토콜에서는 Service Worker를 등록하지 않음
+            if ('serviceWorker' in navigator && window.location.protocol !== 'file:') {
                 navigator.serviceWorker.register('./sw.js')
                     .then(registration => {
                         console.log('Service Worker 등록 성공:', registration);
@@ -3224,6 +3235,8 @@
                     .catch(err => {
                         console.log('Service Worker 등록 실패:', err);
                     });
+            } else if (window.location.protocol === 'file:') {
+                console.log('Service Worker는 file:// 프로토콜에서 지원되지 않습니다.');
             }
         }
     };
