@@ -1290,6 +1290,13 @@
                 item.style.animationDelay = `${index * 0.05}s`;
                 item.classList.add('fade-in');
             });
+            
+            // 새 목표 플래그 초기화
+            if (this.newGoalId) {
+                setTimeout(() => {
+                    this.newGoalId = null;
+                }, 500);
+            }
         },
 
         // 목표 요소 생성
@@ -1312,7 +1319,7 @@
                 : null;
 
             return `
-                <article class="goal-card ${isCompleted ? 'completed' : ''}" 
+                <article class="goal-card ${isCompleted ? 'completed' : ''} ${this.newGoalId === goal.id ? 'new' : ''}" 
                          data-id="${goal.id}" 
                          data-category="${goal.category}">
                     <div class="category-bar ${goal.category}"></div>
@@ -1928,6 +1935,13 @@
                 const taskId = taskItem.querySelector('.task-checkbox').dataset.taskId;
                 this.handleTaskEdit(goalId, taskId);
             }
+            
+            // 목표 제목 더블클릭으로 편집
+            if (target.classList.contains('goal-title')) {
+                const goalCard = target.closest('.goal-card');
+                const goalId = goalCard.dataset.id;
+                this.handleGoalTitleEdit(goalId);
+            }
         },
 
         // 키보드 이벤트 핸들러
@@ -2095,14 +2109,44 @@
         bindTaskDragEvents() {
             let draggedTask = null;
             let draggedGoalId = null;
+            let draggedTaskId = null;
+            let dragGuide = null;
+            
+            // 드래그 가이드 생성
+            const createDragGuide = () => {
+                if (!dragGuide) {
+                    dragGuide = document.createElement('div');
+                    dragGuide.className = 'drag-guide';
+                    document.body.appendChild(dragGuide);
+                }
+                return dragGuide;
+            };
             
             // 이벤트 위임을 사용하여 동적 요소에도 적용
             document.addEventListener('dragstart', (e) => {
                 if (e.target.classList.contains('task-item')) {
                     draggedTask = e.target;
                     draggedGoalId = e.target.closest('.task-list').dataset.goalId;
+                    draggedTaskId = e.target.dataset.taskId;
                     e.target.classList.add('dragging');
                     e.dataTransfer.effectAllowed = 'move';
+                    
+                    // 드래그 미리보기 생성
+                    const preview = e.target.cloneNode(true);
+                    preview.classList.add('task-drag-preview');
+                    preview.style.position = 'absolute';
+                    preview.style.top = '-1000px';
+                    document.body.appendChild(preview);
+                    e.dataTransfer.setDragImage(preview, e.offsetX, e.offsetY);
+                    setTimeout(() => preview.remove(), 0);
+                    
+                    // 드래그 시작 시 모든 목표 카드에 드롭 가능 표시
+                    document.querySelectorAll('.goal-card').forEach(card => {
+                        const cardGoalId = card.querySelector('.task-list')?.dataset.goalId;
+                        if (cardGoalId && cardGoalId !== draggedGoalId) {
+                            card.classList.add('drop-zone-active');
+                        }
+                    });
                 }
             });
             
@@ -2112,76 +2156,188 @@
                     
                     // 모든 drag-over 클래스 제거
                     document.querySelectorAll('.task-item.drag-over').forEach(item => {
-                        item.classList.remove('drag-over');
+                        item.classList.remove('drag-over', 'drag-over-top', 'drag-over-bottom');
                     });
+                    
+                    document.querySelectorAll('.goal-card').forEach(card => {
+                        card.classList.remove('drop-zone-active', 'drag-over');
+                    });
+                    
+                    document.querySelectorAll('.task-list').forEach(list => {
+                        list.classList.remove('drop-zone-active', 'drag-over');
+                    });
+                    
+                    // 드래그 가이드 제거
+                    if (dragGuide) {
+                        dragGuide.classList.remove('active');
+                    }
                 }
             });
             
             document.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                
+                // 태스크 위에서
                 if (e.target.closest('.task-item') && draggedTask) {
-                    e.preventDefault();
                     const taskItem = e.target.closest('.task-item');
                     if (taskItem !== draggedTask) {
-                        taskItem.classList.add('drag-over');
+                        // 이전 drag-over 제거
+                        document.querySelectorAll('.task-item.drag-over').forEach(item => {
+                            if (item !== taskItem) item.classList.remove('drag-over');
+                        });
+                        
+                        // 마우스 위치에 따라 위/아래 표시
+                        const rect = taskItem.getBoundingClientRect();
+                        const midpoint = rect.top + rect.height / 2;
+                        
+                        // 드래그 가이드 표시
+                        const guide = createDragGuide();
+                        guide.classList.add('active');
+                        
+                        if (e.clientY < midpoint) {
+                            guide.style.top = `${rect.top - 1}px`;
+                            guide.style.left = `${rect.left}px`;
+                            guide.style.width = `${rect.width}px`;
+                            taskItem.classList.add('drag-over', 'drag-over-top');
+                        } else {
+                            guide.style.top = `${rect.bottom - 1}px`;
+                            guide.style.left = `${rect.left}px`;
+                            guide.style.width = `${rect.width}px`;
+                            taskItem.classList.add('drag-over', 'drag-over-bottom');
+                        }
+                    }
+                }
+                
+                // 목표 카드 위에서
+                if (e.target.closest('.goal-card') && draggedTask) {
+                    const goalCard = e.target.closest('.goal-card');
+                    const targetGoalId = goalCard.querySelector('.task-list')?.dataset.goalId;
+                    
+                    if (targetGoalId && targetGoalId !== draggedGoalId) {
+                        goalCard.classList.add('drag-over');
+                    }
+                }
+                
+                // 빈 태스크 리스트 위에서
+                if (e.target.closest('.task-list') && draggedTask) {
+                    const taskList = e.target.closest('.task-list');
+                    if (!taskList.querySelector('.task-item:not(.dragging)')) {
+                        taskList.classList.add('drag-over');
                     }
                 }
             });
             
             document.addEventListener('dragleave', (e) => {
                 if (e.target.closest('.task-item')) {
-                    e.target.closest('.task-item').classList.remove('drag-over');
+                    const taskItem = e.target.closest('.task-item');
+                    taskItem.classList.remove('drag-over', 'drag-over-top', 'drag-over-bottom');
+                    
+                    // 드래그 가이드 숨기기
+                    if (dragGuide && !e.relatedTarget?.closest('.task-item')) {
+                        dragGuide.classList.remove('active');
+                    }
+                }
+                
+                if (e.target.closest('.goal-card')) {
+                    const goalCard = e.target.closest('.goal-card');
+                    if (!goalCard.contains(e.relatedTarget)) {
+                        goalCard.classList.remove('drag-over');
+                    }
+                }
+                
+                if (e.target.closest('.task-list')) {
+                    const taskList = e.target.closest('.task-list');
+                    if (!taskList.contains(e.relatedTarget)) {
+                        taskList.classList.remove('drag-over');
+                    }
                 }
             });
             
             document.addEventListener('drop', (e) => {
-                if (e.target.closest('.task-item') && draggedTask) {
-                    e.preventDefault();
-                    const targetTask = e.target.closest('.task-item');
-                    const targetList = targetTask.closest('.task-list');
-                    const targetGoalId = targetList.dataset.goalId;
+                e.preventDefault();
+                
+                if (!draggedTask) return;
+                
+                const targetTaskList = e.target.closest('.task-list');
+                if (!targetTaskList) return;
+                
+                const targetGoalId = targetTaskList.dataset.goalId;
+                const targetTask = e.target.closest('.task-item');
+                
+                if (targetTask && targetTask !== draggedTask) {
+                    // 특정 태스크 위치에 드롭
+                    const rect = targetTask.getBoundingClientRect();
+                    const midpoint = rect.top + rect.height / 2;
                     
-                    if (targetTask !== draggedTask) {
-                        // 태스크 순서 변경
-                        const allTasks = [...targetList.querySelectorAll('.task-item')];
-                        const draggedIndex = allTasks.indexOf(draggedTask);
-                        const targetIndex = allTasks.indexOf(targetTask);
-                        
-                        if (draggedIndex < targetIndex) {
-                            targetList.insertBefore(draggedTask, targetTask.nextSibling);
-                        } else {
-                            targetList.insertBefore(draggedTask, targetTask);
-                        }
-                        
-                        // 데이터 업데이트
-                        this.updateTaskOrder(draggedGoalId, targetGoalId);
+                    if (e.clientY < midpoint) {
+                        targetTaskList.insertBefore(draggedTask, targetTask);
+                    } else {
+                        targetTaskList.insertBefore(draggedTask, targetTask.nextSibling);
                     }
-                    
-                    targetTask.classList.remove('drag-over');
+                } else if (!targetTask && targetTaskList !== draggedTask.parentElement) {
+                    // 빈 리스트에 드롭
+                    targetTaskList.appendChild(draggedTask);
                 }
+                
+                // 데이터 업데이트
+                this.updateTaskOrder(draggedGoalId, targetGoalId, draggedTaskId);
+                
+                // 클래스 정리
+                document.querySelectorAll('.drag-over, .drag-over-top, .drag-over-bottom').forEach(el => {
+                    el.classList.remove('drag-over', 'drag-over-top', 'drag-over-bottom');
+                });
             });
         },
         
         // 태스크 순서 업데이트
-        updateTaskOrder(sourceGoalId, targetGoalId) {
-            // 같은 목표 내에서 순서만 변경된 경우
+        updateTaskOrder(sourceGoalId, targetGoalId, taskId) {
+            const sourceGoal = DataModel.state.currentProfile?.bucketList.find(g => g.id === sourceGoalId);
+            const targetGoal = DataModel.state.currentProfile?.bucketList.find(g => g.id === targetGoalId);
+            
+            if (!sourceGoal || !targetGoal) return;
+            
             if (sourceGoalId === targetGoalId) {
-                const goal = DataModel.state.currentProfile?.bucketList.find(g => g.id === sourceGoalId);
-                if (goal && goal.tasks) {
+                // 같은 목표 내에서 순서만 변경된 경우
+                if (sourceGoal.tasks) {
                     // DOM 순서대로 태스크 재정렬
                     const taskList = document.querySelector(`.task-list[data-goal-id="${sourceGoalId}"]`);
                     const newOrder = [...taskList.querySelectorAll('.task-item')].map(item => item.dataset.taskId);
                     
                     // 새로운 순서로 태스크 배열 재정렬
                     const orderedTasks = [];
-                    newOrder.forEach(taskId => {
-                        const task = goal.tasks.find(t => t.id === taskId);
+                    newOrder.forEach(tid => {
+                        const task = sourceGoal.tasks.find(t => t.id === tid);
                         if (task) orderedTasks.push(task);
                     });
                     
-                    goal.tasks = orderedTasks;
-                    DataModel.saveProfiles();
+                    sourceGoal.tasks = orderedTasks;
+                }
+            } else {
+                // 다른 목표로 이동하는 경우
+                const task = sourceGoal.tasks?.find(t => t.id === taskId);
+                if (task) {
+                    // 원본에서 제거
+                    sourceGoal.tasks = sourceGoal.tasks.filter(t => t.id !== taskId);
+                    
+                    // 대상에 추가
+                    if (!targetGoal.tasks) targetGoal.tasks = [];
+                    
+                    // DOM 순서에 따라 삽입
+                    const targetTaskList = document.querySelector(`.task-list[data-goal-id="${targetGoalId}"]`);
+                    const targetTaskIds = [...targetTaskList.querySelectorAll('.task-item')].map(item => item.dataset.taskId);
+                    const insertIndex = targetTaskIds.indexOf(taskId);
+                    
+                    if (insertIndex >= 0) {
+                        targetGoal.tasks.splice(insertIndex, 0, task);
+                    } else {
+                        targetGoal.tasks.push(task);
+                    }
                 }
             }
+            
+            DataModel.saveProfiles();
+            // 태스크 이동 후 전체 화면 업데이트
+            setTimeout(() => this.render(), 100);
         },
 
         // 렌더링
@@ -2309,8 +2465,11 @@
                 return;
             }
 
-            DataModel.addGoal(text, category);
+            const newGoal = DataModel.addGoal(text, category);
             input.value = '';
+            
+            // 새 목표 추가 애니메이션을 위한 플래그 설정
+            this.newGoalId = newGoal.id;
             this.render();
             
             // 동기부여 메시지
@@ -3060,6 +3219,67 @@
             View.showNotification('목표 편집 기능은 준비 중입니다.', 'info');
         },
         
+        // 목표 제목 인라인 편집
+        handleGoalTitleEdit(goalId) {
+            const titleElement = document.querySelector(`.goal-card[data-id="${goalId}"] .goal-title`);
+            if (!titleElement) return;
+            
+            const currentText = titleElement.textContent;
+            const originalHTML = titleElement.innerHTML;
+            
+            // 입력 필드 생성
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = currentText;
+            input.className = 'goal-title-edit-input';
+            
+            // 스타일 복사
+            const styles = window.getComputedStyle(titleElement);
+            input.style.fontSize = styles.fontSize;
+            input.style.fontWeight = styles.fontWeight;
+            input.style.width = '100%';
+            
+            // 제목 요소를 입력 필드로 교체
+            titleElement.innerHTML = '';
+            titleElement.appendChild(input);
+            
+            // 포커스 및 전체 선택
+            input.focus();
+            input.select();
+            
+            // 저장 함수
+            const saveEdit = () => {
+                const newText = input.value.trim();
+                if (newText && newText !== currentText) {
+                    const goal = DataModel.state.currentProfile?.bucketList.find(g => g.id === goalId);
+                    if (goal) {
+                        goal.text = newText;
+                        DataModel.saveProfiles();
+                        View.showNotification('목표가 수정되었습니다.', 'success');
+                    }
+                }
+                this.render();
+            };
+            
+            // 취소 함수
+            const cancelEdit = () => {
+                titleElement.innerHTML = originalHTML;
+            };
+            
+            // 이벤트 리스너
+            input.addEventListener('blur', saveEdit);
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    saveEdit();
+                } else if (e.key === 'Escape') {
+                    e.preventDefault();
+                    input.removeEventListener('blur', saveEdit);
+                    cancelEdit();
+                }
+            });
+        },
+        
         // 일정 관리 핸들러
         handleSchedule(goalId) {
             const goal = DataModel.state.currentProfile?.bucketList.find(g => g.id === goalId);
@@ -3153,25 +3373,64 @@
         handleTaskDelete(goalId, taskId) {
             if (!confirm('이 태스크를 삭제하시겠습니까?')) return;
             
-            const goal = DataModel.state.currentProfile?.bucketList.find(g => g.id === goalId);
-            if (goal && goal.tasks) {
-                goal.tasks = goal.tasks.filter(t => t.id !== taskId);
-                DataModel.saveProfiles();
-                this.render();
-                View.showNotification('태스크가 삭제되었습니다.', 'info');
+            // 삭제 애니메이션 적용
+            const taskElement = document.querySelector(`.task-item[data-task-id="${taskId}"]`);
+            if (taskElement) {
+                taskElement.classList.add('deleting');
+                
+                // 애니메이션 종료 후 실제 삭제
+                setTimeout(() => {
+                    const goal = DataModel.state.currentProfile?.bucketList.find(g => g.id === goalId);
+                    if (goal && goal.tasks) {
+                        goal.tasks = goal.tasks.filter(t => t.id !== taskId);
+                        DataModel.saveProfiles();
+                        this.render();
+                        View.showNotification('태스크가 삭제되었습니다.', 'info');
+                    }
+                }, 300);
+            } else {
+                // 요소를 찾을 수 없는 경우 즉시 삭제
+                const goal = DataModel.state.currentProfile?.bucketList.find(g => g.id === goalId);
+                if (goal && goal.tasks) {
+                    goal.tasks = goal.tasks.filter(t => t.id !== taskId);
+                    DataModel.saveProfiles();
+                    this.render();
+                    View.showNotification('태스크가 삭제되었습니다.', 'info');
+                }
             }
         },
         
         // 노트 삭제
         handleNoteDelete(goalId, taskId, noteId) {
-            const goal = DataModel.state.currentProfile?.bucketList.find(g => g.id === goalId);
-            if (goal && goal.tasks) {
-                const task = goal.tasks.find(t => t.id === taskId);
-                if (task && task.notes) {
-                    task.notes = task.notes.filter(n => n.id !== noteId);
-                    DataModel.saveProfiles();
-                    this.render();
-                    View.showNotification('노트가 삭제되었습니다.', 'info');
+            // 삭제 애니메이션 적용
+            const noteElement = document.querySelector(`.note-item[data-note-id="${noteId}"]`);
+            if (noteElement) {
+                noteElement.classList.add('deleting');
+                
+                // 애니메이션 종료 후 실제 삭제
+                setTimeout(() => {
+                    const goal = DataModel.state.currentProfile?.bucketList.find(g => g.id === goalId);
+                    if (goal && goal.tasks) {
+                        const task = goal.tasks.find(t => t.id === taskId);
+                        if (task && task.notes) {
+                            task.notes = task.notes.filter(n => n.id !== noteId);
+                            DataModel.saveProfiles();
+                            this.render();
+                            View.showNotification('노트가 삭제되었습니다.', 'info');
+                        }
+                    }
+                }, 300);
+            } else {
+                // 요소를 찾을 수 없는 경우 즉시 삭제
+                const goal = DataModel.state.currentProfile?.bucketList.find(g => g.id === goalId);
+                if (goal && goal.tasks) {
+                    const task = goal.tasks.find(t => t.id === taskId);
+                    if (task && task.notes) {
+                        task.notes = task.notes.filter(n => n.id !== noteId);
+                        DataModel.saveProfiles();
+                        this.render();
+                        View.showNotification('노트가 삭제되었습니다.', 'info');
+                    }
                 }
             }
         },

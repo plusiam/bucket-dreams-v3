@@ -5762,3 +5762,125 @@ body {
     border-color: #007AFF;
     background: rgba(0, 122, 255, 0.05);
 }
+
+/* Goal title inline editing */
+.goal-title.editing {
+    position: relative;
+    animation: editPulse 2s ease-in-out infinite;
+}
+
+@keyframes editPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+}
+
+.goal-title-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 2px solid #007AFF;
+    background: white;
+    border-radius: 12px;
+    font-size: 20px;
+    font-weight: 600;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.15);
+    animation: slideIn 0.3s ease;
+}
+
+.goal-title-input:focus {
+    outline: none;
+    border-color: #0051D5;
+    box-shadow: 0 4px 16px rgba(0, 122, 255, 0.25);
+}
+
+/* Enhanced drag and drop visual feedback */
+.dragging {
+    opacity: 0.5;
+    cursor: grabbing !important;
+}
+
+.drag-guide {
+    position: absolute;
+    width: 100%;
+    height: 2px;
+    background: #007AFF;
+    opacity: 0;
+    transition: opacity 0.2s;
+    pointer-events: none;
+}
+
+.drag-guide.active {
+    opacity: 1;
+    animation: guidePulse 1s ease-in-out infinite;
+}
+
+@keyframes guidePulse {
+    0%, 100% { 
+        transform: scaleX(1);
+        opacity: 0.5;
+    }
+    50% { 
+        transform: scaleX(1.05);
+        opacity: 1;
+    }
+}
+
+.goal-card.drag-over {
+    border: 2px solid #007AFF;
+    background: rgba(0, 122, 255, 0.02);
+    transform: scale(1.02);
+}
+
+.task-item.drag-preview {
+    position: fixed;
+    pointer-events: none;
+    z-index: 1000;
+    transform: rotate(3deg);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+/* Enhanced animations */
+@keyframes rotateOut {
+    from {
+        opacity: 1;
+        transform: scale(1) rotate(0deg);
+    }
+    to {
+        opacity: 0;
+        transform: scale(0.8) rotate(10deg);
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.deleting {
+    animation: rotateOut 0.3s ease-out forwards;
+}
+
+.goal-card.new {
+    animation: scaleIn 0.4s ease-out;
+}
+
+/* Hover hints for editable areas */
+.goal-title:hover {
+    background: rgba(0, 122, 255, 0.05);
+    border-radius: 8px;
+    padding: 4px 8px;
+    margin: -4px -8px;
+    cursor: text;
+}
+
+.task-content:hover {
+    background: rgba(0, 122, 255, 0.03);
+    cursor: text;
+}
