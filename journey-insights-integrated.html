@@ -1,0 +1,664 @@
+<!-- 통합된 여정 & 인사이트 탭 -->
+<section class="tab-content" id="journey-insights-tab" role="tabpanel" aria-labelledby="journey-insights-tab-button">
+    <div class="journey-insights-content">
+        <!-- 헤더 섹션 -->
+        <div class="section-header">
+            <h2>🌟 나의 버킷리스트 여정</h2>
+            <p>지금까지의 성과와 패턴을 한눈에 확인하세요</p>
+            
+            <!-- 기간 필터 -->
+            <div class="period-filter">
+                <button class="period-btn active" data-period="all">전체</button>
+                <button class="period-btn" data-period="year">올해</button>
+                <button class="period-btn" data-period="quarter">분기</button>
+                <button class="period-btn" data-period="month">이번달</button>
+            </div>
+        </div>
+
+        <!-- 핵심 지표 대시보드 -->
+        <div class="metrics-dashboard">
+            <!-- 전체 진행률 (크고 시각적으로 강조) -->
+            <div class="main-progress-card">
+                <div class="circular-progress" data-progress="0">
+                    <svg viewBox="0 0 200 200">
+                        <circle cx="100" cy="100" r="90" />
+                        <circle cx="100" cy="100" r="90" class="progress-ring" />
+                    </svg>
+                    <div class="progress-content">
+                        <div class="progress-value">0%</div>
+                        <div class="progress-label">전체 달성률</div>
+                    </div>
+                </div>
+                
+                <!-- 빠른 통계 -->
+                <div class="quick-stats">
+                    <div class="stat-item">
+                        <span class="stat-icon">🎯</span>
+                        <span class="stat-value" id="totalGoals">0</span>
+                        <span class="stat-label">전체 목표</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-icon">✅</span>
+                        <span class="stat-value" id="completedGoals">0</span>
+                        <span class="stat-label">달성 완료</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-icon">🔥</span>
+                        <span class="stat-value" id="activeStreak">0일</span>
+                        <span class="stat-label">연속 활동</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-icon">💪</span>
+                        <span class="stat-value" id="avgMotivation">0</span>
+                        <span class="stat-label">평균 동기</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 카테고리별 분석 (시각적 + 수치적) -->
+            <div class="category-analysis-card">
+                <h3>카테고리별 성과</h3>
+                <div class="category-chart-container">
+                    <canvas id="categoryRadarChart"></canvas>
+                </div>
+                <div class="category-details">
+                    <!-- 각 카테고리별 진행률 바 -->
+                    <div class="category-item" data-category="travel">
+                        <div class="category-header">
+                            <span class="category-icon">🌍</span>
+                            <span class="category-name">여행</span>
+                            <span class="category-stats">0/0</span>
+                        </div>
+                        <div class="category-progress-bar">
+                            <div class="category-progress-fill" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <!-- 다른 카테고리들도 동일한 구조 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 시간축 분석 (타임라인 + 트렌드) -->
+        <div class="timeline-analysis">
+            <div class="timeline-header">
+                <h3>📈 시간별 달성 패턴</h3>
+                <div class="view-toggle">
+                    <button class="view-btn active" data-view="timeline">타임라인</button>
+                    <button class="view-btn" data-view="heatmap">히트맵</button>
+                    <button class="view-btn" data-view="trend">트렌드</button>
+                </div>
+            </div>
+            
+            <!-- 타임라인 뷰 -->
+            <div class="timeline-view active" id="timelineView">
+                <div class="achievement-timeline" id="achievementTimeline">
+                    <!-- 달성 목표들이 시간순으로 표시 -->
+                </div>
+            </div>
+            
+            <!-- 히트맵 뷰 -->
+            <div class="heatmap-view" id="heatmapView" style="display: none;">
+                <div class="year-heatmap">
+                    <!-- GitHub 스타일 활동 히트맵 -->
+                </div>
+            </div>
+            
+            <!-- 트렌드 차트 뷰 -->
+            <div class="trend-view" id="trendView" style="display: none;">
+                <canvas id="trendChart"></canvas>
+            </div>
+        </div>
+
+        <!-- 감정 & 동기 분석 -->
+        <div class="emotion-motivation-analysis">
+            <h3>😊 감정 & 동기 패턴</h3>
+            <div class="analysis-grid">
+                <!-- 감정 분포 -->
+                <div class="emotion-distribution">
+                    <h4>주요 감정 분포</h4>
+                    <canvas id="emotionPieChart"></canvas>
+                    <div class="emotion-insights">
+                        <p class="insight-text" id="emotionInsight">
+                            <!-- AI가 분석한 감정 패턴 인사이트 -->
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- 동기 변화 추이 -->
+                <div class="motivation-trend">
+                    <h4>동기 지수 변화</h4>
+                    <canvas id="motivationLineChart"></canvas>
+                    <div class="motivation-insights">
+                        <p class="insight-text" id="motivationInsight">
+                            <!-- 동기 패턴에 대한 인사이트 -->
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 개인화된 인사이트 & 추천 -->
+        <div class="personalized-insights">
+            <h3>💡 맞춤형 인사이트</h3>
+            <div class="insight-cards">
+                <!-- 강점 분석 -->
+                <div class="insight-card strength">
+                    <div class="insight-icon">💪</div>
+                    <h4>당신의 강점</h4>
+                    <p id="strengthAnalysis">카테고리 분석 중...</p>
+                </div>
+                
+                <!-- 패턴 발견 -->
+                <div class="insight-card pattern">
+                    <div class="insight-icon">🔍</div>
+                    <h4>발견된 패턴</h4>
+                    <p id="patternAnalysis">패턴 분석 중...</p>
+                </div>
+                
+                <!-- 다음 단계 제안 -->
+                <div class="insight-card suggestion">
+                    <div class="insight-icon">🎯</div>
+                    <h4>추천 다음 단계</h4>
+                    <p id="nextStepSuggestion">분석 중...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 달성 예측 & 목표 -->
+        <div class="achievement-forecast">
+            <h3>🔮 달성 예측</h3>
+            <div class="forecast-content">
+                <div class="forecast-chart">
+                    <canvas id="forecastChart"></canvas>
+                </div>
+                <div class="forecast-details">
+                    <div class="forecast-item">
+                        <span class="forecast-label">현재 속도로 계속하면</span>
+                        <span class="forecast-value" id="expectedCompletion">-</span>
+                    </div>
+                    <div class="forecast-item">
+                        <span class="forecast-label">100% 달성 예상일</span>
+                        <span class="forecast-value" id="completionDate">-</span>
+                    </div>
+                    <div class="forecast-item">
+                        <span class="forecast-label">권장 주간 목표</span>
+                        <span class="forecast-value" id="weeklyTarget">-</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 액션 버튼들 -->
+        <div class="action-buttons">
+            <button class="btn btn-primary" onclick="exportJourneyReport()">
+                📄 여정 리포트 다운로드
+            </button>
+            <button class="btn btn-secondary" onclick="shareJourneyHighlights()">
+                🔗 하이라이트 공유
+            </button>
+            <button class="btn btn-secondary" onclick="setNewGoals()">
+                🎯 새 목표 설정
+            </button>
+        </div>
+    </div>
+</section>
+
+<style>
+/* 통합된 여정 & 인사이트 스타일 */
+.journey-insights-content {
+    padding: 20px 0;
+}
+
+.section-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.period-filter {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.period-btn {
+    padding: 8px 20px;
+    border: 1px solid #e0e0e0;
+    background: white;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.period-btn.active {
+    background: #007AFF;
+    color: white;
+    border-color: #007AFF;
+}
+
+.metrics-dashboard {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-bottom: 40px;
+}
+
+.main-progress-card {
+    background: white;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+.circular-progress {
+    width: 200px;
+    height: 200px;
+    position: relative;
+    margin: 0 auto 20px;
+}
+
+.circular-progress svg {
+    transform: rotate(-90deg);
+}
+
+.circular-progress circle {
+    fill: none;
+    stroke-width: 12;
+}
+
+.circular-progress circle:first-child {
+    stroke: #f0f0f0;
+}
+
+.progress-ring {
+    stroke: #007AFF;
+    stroke-dasharray: 565.48;
+    stroke-dashoffset: 565.48;
+    transition: stroke-dashoffset 1s ease;
+}
+
+.progress-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.progress-value {
+    font-size: 48px;
+    font-weight: 700;
+    color: #007AFF;
+}
+
+.quick-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-top: 30px;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-icon {
+    font-size: 24px;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.stat-value {
+    font-size: 24px;
+    font-weight: 600;
+    display: block;
+}
+
+.stat-label {
+    font-size: 13px;
+    color: #666;
+}
+
+.category-analysis-card {
+    background: white;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+.category-chart-container {
+    width: 250px;
+    height: 250px;
+    margin: 20px auto;
+}
+
+.category-item {
+    margin-bottom: 20px;
+}
+
+.category-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.category-icon {
+    font-size: 20px;
+}
+
+.category-name {
+    flex: 1;
+    font-weight: 500;
+}
+
+.category-stats {
+    color: #666;
+    font-size: 14px;
+}
+
+.category-progress-bar {
+    height: 8px;
+    background: #f0f0f0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.category-progress-fill {
+    height: 100%;
+    background: linear-gradient(to right, #007AFF, #5856D6);
+    transition: width 0.5s ease;
+}
+
+.timeline-analysis {
+    background: white;
+    border-radius: 20px;
+    padding: 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+.view-toggle {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.view-btn {
+    padding: 6px 16px;
+    border: 1px solid #e0e0e0;
+    background: white;
+    border-radius: 15px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.view-btn.active {
+    background: #007AFF;
+    color: white;
+    border-color: #007AFF;
+}
+
+.emotion-motivation-analysis {
+    background: white;
+    border-radius: 20px;
+    padding: 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+.analysis-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-top: 20px;
+}
+
+.personalized-insights {
+    margin-bottom: 30px;
+}
+
+.insight-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.insight-card {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    transition: transform 0.2s;
+}
+
+.insight-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(0,0,0,0.12);
+}
+
+.insight-icon {
+    font-size: 32px;
+    margin-bottom: 10px;
+}
+
+.insight-card h4 {
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+.achievement-forecast {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 20px;
+    padding: 30px;
+    margin-bottom: 30px;
+}
+
+.forecast-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-top: 20px;
+}
+
+.forecast-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+}
+
+.forecast-label {
+    opacity: 0.9;
+}
+
+.forecast-value {
+    font-weight: 600;
+    font-size: 18px;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 40px;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .metrics-dashboard {
+        grid-template-columns: 1fr;
+    }
+    
+    .analysis-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .forecast-content {
+        grid-template-columns: 1fr;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+}
+</style>
+
+<script>
+// 통합된 여정 & 인사이트 JavaScript
+function initJourneyInsights() {
+    // 데이터 로드 및 차트 초기화
+    const stats = DataModel.getStats();
+    const goals = DataModel.state.currentProfile?.bucketList || [];
+    
+    // 전체 진행률 업데이트
+    updateCircularProgress(stats.percentage);
+    
+    // 빠른 통계 업데이트
+    document.getElementById('totalGoals').textContent = stats.total;
+    document.getElementById('completedGoals').textContent = stats.completed;
+    document.getElementById('activeStreak').textContent = calculateStreak() + '일';
+    document.getElementById('avgMotivation').textContent = stats.motivationIndex;
+    
+    // 차트 초기화
+    initCategoryRadarChart(stats.byCategory);
+    initEmotionPieChart(goals);
+    initMotivationLineChart(goals);
+    initTrendChart(goals);
+    initForecastChart(stats);
+    
+    // 인사이트 생성
+    generatePersonalizedInsights(goals, stats);
+}
+
+// 원형 진행률 업데이트
+function updateCircularProgress(percentage) {
+    const progressRing = document.querySelector('.progress-ring');
+    const radius = progressRing.r.baseVal.value;
+    const circumference = radius * 2 * Math.PI;
+    
+    progressRing.style.strokeDasharray = `${circumference} ${circumference}`;
+    progressRing.style.strokeDashoffset = circumference;
+    
+    const offset = circumference - (percentage / 100 * circumference);
+    progressRing.style.strokeDashoffset = offset;
+    
+    document.querySelector('.progress-value').textContent = percentage + '%';
+}
+
+// 카테고리별 레이더 차트
+function initCategoryRadarChart(categoryStats) {
+    const ctx = document.getElementById('categoryRadarChart').getContext('2d');
+    
+    const categories = Object.keys(categoryStats);
+    const completionRates = categories.map(cat => {
+        const stats = categoryStats[cat];
+        return stats.total > 0 ? (stats.completed / stats.total * 100) : 0;
+    });
+    
+    new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: categories.map(cat => CONFIG.CATEGORIES[cat]?.name || cat),
+            datasets: [{
+                label: '달성률',
+                data: completionRates,
+                backgroundColor: 'rgba(0, 122, 255, 0.2)',
+                borderColor: '#007AFF',
+                borderWidth: 2,
+                pointBackgroundColor: '#007AFF'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                r: {
+                    beginAtZero: true,
+                    max: 100,
+                    ticks: {
+                        callback: value => value + '%'
+                    }
+                }
+            }
+        }
+    });
+    
+    // 카테고리별 진행률 바 업데이트
+    categories.forEach(cat => {
+        const item = document.querySelector(`[data-category="${cat}"]`);
+        if (item) {
+            const stats = categoryStats[cat];
+            item.querySelector('.category-stats').textContent = `${stats.completed}/${stats.total}`;
+            const percentage = stats.total > 0 ? (stats.completed / stats.total * 100) : 0;
+            item.querySelector('.category-progress-fill').style.width = percentage + '%';
+        }
+    });
+}
+
+// 뷰 전환
+document.querySelectorAll('.view-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const view = this.dataset.view;
+        
+        // 버튼 활성화 상태 변경
+        document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        
+        // 뷰 전환
+        document.querySelectorAll('.timeline-view, .heatmap-view, .trend-view').forEach(v => {
+            v.style.display = 'none';
+        });
+        document.getElementById(view + 'View').style.display = 'block';
+    });
+});
+
+// 기간 필터
+document.querySelectorAll('.period-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const period = this.dataset.period;
+        
+        // 버튼 활성화 상태 변경
+        document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        
+        // 데이터 필터링 및 차트 업데이트
+        filterDataByPeriod(period);
+    });
+});
+
+// 개인화된 인사이트 생성
+function generatePersonalizedInsights(goals, stats) {
+    // 강점 분석
+    const strengthText = analyzeStrengths(goals, stats);
+    document.getElementById('strengthAnalysis').textContent = strengthText;
+    
+    // 패턴 발견
+    const patternText = discoverPatterns(goals);
+    document.getElementById('patternAnalysis').textContent = patternText;
+    
+    // 다음 단계 제안
+    const suggestionText = suggestNextSteps(goals, stats);
+    document.getElementById('nextStepSuggestion').textContent = suggestionText;
+}
+
+// 달성 예측
+function calculateForecast(stats) {
+    const completionRate = stats.completed / stats.total;
+    const daysElapsed = calculateDaysSinceStart();
+    const goalsPerDay = stats.completed / daysElapsed;
+    
+    const remainingGoals = stats.total - stats.completed;
+    const daysToComplete = remainingGoals / goalsPerDay;
+    
+    const expectedDate = new Date();
+    expectedDate.setDate(expectedDate.getDate() + daysToComplete);
+    
+    document.getElementById('expectedCompletion').textContent = `${Math.ceil(daysToComplete)}일 후`;
+    document.getElementById('completionDate').textContent = expectedDate.toLocaleDateString('ko-KR');
+    document.getElementById('weeklyTarget').textContent = `주 ${Math.ceil(goalsPerDay * 7)}개`;
+}
+</script>
